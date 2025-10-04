@@ -46,15 +46,27 @@ export const useRegisterTournament = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ tournamentId, userId }: { tournamentId: string; userId: string }) => {
+    mutationFn: async ({ 
+      tournamentId, 
+      userId, 
+      inGameName, 
+      friendInGameName 
+    }: { 
+      tournamentId: string; 
+      userId: string;
+      inGameName: string;
+      friendInGameName?: string;
+    }) => {
       const { data, error } = await supabase.rpc("register_for_tournament", {
         p_tournament_id: tournamentId,
         p_user_id: userId,
+        p_in_game_name: inGameName,
+        p_friend_in_game_name: friendInGameName || null,
       });
 
       if (error) throw error;
       
-      const result = data as { success: boolean; error?: string; balance?: number };
+      const result = data as { success: boolean; error?: string; balance?: number; slot_number?: number };
       
       if (!result.success) {
         throw new Error(result.error || "Registration failed");

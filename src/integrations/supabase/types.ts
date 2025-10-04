@@ -111,26 +111,35 @@ export type Database = {
       }
       tournament_registrations: {
         Row: {
+          friend_in_game_name: string | null
           id: string
+          in_game_name: string | null
           prize_amount: number | null
           rank: number | null
           registered_at: string
+          slot_number: number | null
           tournament_id: string
           user_id: string
         }
         Insert: {
+          friend_in_game_name?: string | null
           id?: string
+          in_game_name?: string | null
           prize_amount?: number | null
           rank?: number | null
           registered_at?: string
+          slot_number?: number | null
           tournament_id: string
           user_id: string
         }
         Update: {
+          friend_in_game_name?: string | null
           id?: string
+          in_game_name?: string | null
           prize_amount?: number | null
           rank?: number | null
           registered_at?: string
+          slot_number?: number | null
           tournament_id?: string
           user_id?: string
         }
@@ -380,6 +389,10 @@ export type Database = {
         Args: { p_admin_id: string; p_tournament_id: string }
         Returns: Json
       }
+      get_next_slot: {
+        Args: { p_tournament_id: string }
+        Returns: number
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -392,7 +405,14 @@ export type Database = {
         Returns: boolean
       }
       register_for_tournament: {
-        Args: { p_tournament_id: string; p_user_id: string }
+        Args:
+          | {
+              p_friend_in_game_name?: string
+              p_in_game_name?: string
+              p_tournament_id: string
+              p_user_id: string
+            }
+          | { p_tournament_id: string; p_user_id: string }
         Returns: Json
       }
       reject_deposit: {

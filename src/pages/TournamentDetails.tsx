@@ -1,16 +1,21 @@
+import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useTournament, useRegisterTournament, useUserRegistrations } from "@/hooks/useTournaments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
-import { Trophy, Users, Calendar, DollarSign, Award, ArrowLeft } from "lucide-react";
-import { format } from "date-fns";
+import { Trophy, Users, Calendar, DollarSign, Award, ArrowLeft, AlertCircle } from "lucide-react";
+import { format, differenceInMinutes } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 const TournamentDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,8 +24,13 @@ const TournamentDetails = () => {
   const { data: tournament, isLoading } = useTournament(id || "");
   const { data: userRegistrations } = useUserRegistrations(user?.id || "");
   const registerMutation = useRegisterTournament();
+  
+  const [showRegisterDialog, setShowRegisterDialog] = useState(false);
+  const [inGameName, setInGameName] = useState("");
+  const [friendInGameName, setFriendInGameName] = useState("");
 
   const isRegistered = userRegistrations?.some((reg) => reg.tournament_id === id);
+  const myRegistration = userRegistrations?.find((reg) => reg.tournament_id === id);
 
   // Fetch room credentials for registered users
   const { data: credentials } = useQuery({
@@ -54,10 +64,38 @@ const TournamentDetails = () => {
   };
 
   const handleRegister = () => {
-    if (user && id) {
-      registerMutation.mutate({ tournamentId: id, userId: user.id });
+    if (!user?.id) return;
+    
+    if (!inGameName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your in-game name",
+        variant: "destructive",
+      });
+      return;
     }
+
+    registerMutation.mutate({
+      tournamentId: id!,
+      userId: user.id,
+      inGameName: inGameName.trim(),
+      friendInGameName: friendInGameName.trim() || undefined,
+    }, {
+      onSuccess: (data) => {
+        toast({
+          title: "Success",
+          description: `Registered successfully! Your slot number is ${data.slot_number}`,
+        });
+        setShowRegisterDialog(false);
+        setInGameName("");
+        setFriendInGameName("");
+      }
+    });
   };
+
+  const minutesUntilStart = tournament ? differenceInMinutes(new Date(tournament.start_date), new Date()) : 0;
+  const showRoomDetails = isRegistered && credentials && minutesUntilStart <= 5 && (credentials.room_id || credentials.room_password);
+  const showRoomPending = isRegistered && minutesUntilStart > 5;
 
   if (isLoading) {
     return (
@@ -145,16 +183,47 @@ const TournamentDetails = () => {
               </div>
             </div>
 
-            {isRegistered && credentials && (credentials.room_id || credentials.room_password) && (
+            {myRegistration && (
+              <div className="mt-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
+                <h4 className="font-semibold mb-2">Your Registration Details</h4>
+                <div className="space-y-1 text-sm">
+                  <p>In-Game Name: <span className="font-bold text-secondary">{myRegistration.in_game_name}</span></p>
+                  {myRegistration.friend_in_game_name && (
+                    <p>Friend's Name: <span className="font-bold text-secondary">{myRegistration.friend_in_game_name}</span></p>
+                  )}
+                  <p>Slot Number: <span className="font-bold text-secondary">#{myRegistration.slot_number}</span></p>
+                </div>
+              </div>
+            )}
+
+            {showRoomDetails ? (
               <div className="mt-6 p-4 bg-secondary/10 border border-secondary/20 rounded-lg">
-                <h4 className="font-semibold mb-2">Room Details</h4>
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <Trophy className="w-4 h-4" />
+                  Room Details
+                </h4>
                 <div className="space-y-1">
                   {credentials.room_id && (
-                    <p className="text-sm">Room ID: <span className="font-mono font-bold">{credentials.room_id}</span></p>
+                    <p className="text-sm">Room ID: <span className="font-mono font-bold text-secondary">{credentials.room_id}</span></p>
                   )}
                   {credentials.room_password && (
-                    <p className="text-sm">Password: <span className="font-mono font-bold">{credentials.room_password}</span></p>
+                    <p className="text-sm">Password: <span className="font-mono font-bold text-secondary">{credentials.room_password}</span></p>
                   )}
+                </div>
+              </div>
+            ) : showRoomPending && (
+              <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-blue-500 mb-1">Room Details Coming Soon</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Room ID and password will be available here 5 minutes before the match starts.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Time until available: {Math.max(0, minutesUntilStart - 5)} minutes
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -205,10 +274,9 @@ const TournamentDetails = () => {
               <Button 
                 variant="premium" 
                 className="w-full"
-                onClick={handleRegister}
-                disabled={registerMutation.isPending}
+                onClick={() => setShowRegisterDialog(true)}
               >
-                {registerMutation.isPending ? "Registering..." : `Join Tournament (₹${tournament.entry_fee})`}
+                Join Tournament (₹{tournament.entry_fee})
               </Button>
             ) : (
               <Button variant="outline" className="w-full" disabled>
@@ -218,6 +286,47 @@ const TournamentDetails = () => {
           </Card>
         </div>
       </div>
+
+      {/* Registration Dialog */}
+      <Dialog open={showRegisterDialog} onOpenChange={setShowRegisterDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Join Tournament</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="inGameName">Your In-Game Name *</Label>
+              <Input
+                id="inGameName"
+                value={inGameName}
+                onChange={(e) => setInGameName(e.target.value)}
+                placeholder="Enter your Free Fire in-game name"
+                maxLength={50}
+              />
+            </div>
+            <div>
+              <Label htmlFor="friendInGameName">Friend's In-Game Name (Optional)</Label>
+              <Input
+                id="friendInGameName"
+                value={friendInGameName}
+                onChange={(e) => setFriendInGameName(e.target.value)}
+                placeholder="Enter your friend's name (if duo/squad)"
+                maxLength={50}
+              />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Entry Fee: <span className="font-bold text-secondary">₹{tournament.entry_fee}</span>
+            </div>
+            <Button
+              onClick={handleRegister}
+              disabled={registerMutation.isPending}
+              className="w-full"
+            >
+              {registerMutation.isPending ? "Registering..." : "Confirm Registration"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };

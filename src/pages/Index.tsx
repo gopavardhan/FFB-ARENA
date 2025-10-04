@@ -5,15 +5,18 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trophy, Wallet, TrendingUp, Plus, History, Award, MessageCircle, Mail } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trophy, Wallet, TrendingUp, Plus, History, Award, MessageCircle, Mail, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRealtimeBalance } from "@/hooks/useRealtimeBalance";
 import { useRealtimeTournaments } from "@/hooks/useRealtimeTournaments";
 import { useRealtimeDepositsWithdrawals } from "@/hooks/useRealtimeDepositsWithdrawals";
 import { useUserBalance } from "@/hooks/useWallet";
-import { useTournaments } from "@/hooks/useTournaments";
+import { useTournaments, useUserRegistrations } from "@/hooks/useTournaments";
 import { usePlayerActivities } from "@/hooks/useActivities";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -28,6 +31,7 @@ const Index = () => {
   const { data: balance } = useUserBalance(user?.id || "");
   const { data: tournaments } = useTournaments({ status: "upcoming" });
   const { data: activities = [] } = usePlayerActivities(user?.id);
+  const { data: userRegistrations } = useUserRegistrations(user?.id || "");
 
   const quickActions = [
     {
@@ -109,7 +113,62 @@ const Index = () => {
             </div>
           </Card>
 
-          <ActivityFeed activities={activities} title="Your Recent Activity" />
+          <Tabs defaultValue="activity" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+              <TabsTrigger value="joined">Joined Tournaments</TabsTrigger>
+            </TabsList>
+            <TabsContent value="activity">
+              <ActivityFeed activities={activities} title="Your Recent Activity" />
+            </TabsContent>
+            <TabsContent value="joined">
+              <Card className="p-6">
+                <h3 className="font-orbitron font-bold text-lg mb-4">Your Tournaments</h3>
+                {userRegistrations && userRegistrations.length > 0 ? (
+                  <div className="space-y-3">
+                    {userRegistrations.map((reg: any) => (
+                      <Card 
+                        key={reg.id} 
+                        className="p-4 hover:bg-secondary/5 cursor-pointer transition-colors"
+                        onClick={() => navigate(`/tournaments/${reg.tournament_id}`)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{reg.tournaments?.name || "Tournament"}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              <Calendar className="w-3 h-3 inline mr-1" />
+                              {reg.tournaments?.start_date && format(new Date(reg.tournaments.start_date), "PPp")}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                Slot #{reg.slot_number}
+                              </Badge>
+                              <span className="text-xs text-secondary">
+                                IGN: {reg.in_game_name}
+                              </span>
+                            </div>
+                          </div>
+                          <Badge className={
+                            reg.tournaments?.status === "upcoming" 
+                              ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                              : reg.tournaments?.status === "active"
+                              ? "bg-green-500/10 text-green-500 border-green-500/20"
+                              : "bg-gray-500/10 text-gray-500 border-gray-500/20"
+                          }>
+                            {reg.tournaments?.status}
+                          </Badge>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">
+                    You haven't joined any tournaments yet.
+                  </p>
+                )}
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
 
         <div className="space-y-6">

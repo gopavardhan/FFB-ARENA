@@ -89,19 +89,11 @@ const TournamentManagement = () => {
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  className="flex-1"
+                  size="sm"
                   onClick={() => navigate(`/admin/tournaments/${tournament.id}/results`)}
                 >
                   <Edit className="w-4 h-4 mr-1" />
                   Results
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="text-red-500 hover:text-red-600"
-                >
-                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </Card>

@@ -22,6 +22,8 @@ import AllTransactions from "./pages/boss/AllTransactions";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import TournamentCreate from "./pages/admin/TournamentCreate";
 import TournamentManagement from "./pages/admin/TournamentManagement";
+import TournamentResults from "./pages/admin/TournamentResults";
+import Announcements from "./pages/admin/Announcements";
 import Notifications from "./pages/player/Notifications";
 import Support from "./pages/player/Support";
 import TermsConditions from "./pages/player/TermsConditions";
@@ -65,6 +67,8 @@ const App = () => (
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/tournaments" element={<ProtectedRoute allowedRoles={['admin', 'boss']}><TournamentManagement /></ProtectedRoute>} />
             <Route path="/admin/tournaments/create" element={<ProtectedRoute allowedRoles={['admin', 'boss']}><TournamentCreate /></ProtectedRoute>} />
+            <Route path="/admin/tournaments/:id/results" element={<ProtectedRoute allowedRoles={['admin', 'boss']}><TournamentResults /></ProtectedRoute>} />
+            <Route path="/admin/announcements" element={<ProtectedRoute allowedRoles={['admin', 'boss']}><Announcements /></ProtectedRoute>} />
             
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
