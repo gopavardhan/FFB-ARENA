@@ -2,6 +2,7 @@ import { X, Bell, History, HelpCircle, FileText, Shield, LogOut } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HamburgerMenuProps {
   isOpen: boolean;
@@ -17,6 +18,13 @@ const menuItems = [
 ];
 
 export const HamburgerMenu = ({ isOpen, onClose }: HamburgerMenuProps) => {
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    onClose();
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -62,7 +70,7 @@ export const HamburgerMenu = ({ isOpen, onClose }: HamburgerMenuProps) => {
           <div className="my-4 border-t border-border" />
 
           <button
-            onClick={onClose}
+            onClick={handleLogout}
             className="flex items-center gap-4 px-4 py-3 rounded-lg hover:bg-destructive/10 transition-colors group"
           >
             <LogOut className="w-5 h-5 text-muted-foreground group-hover:text-destructive transition-colors" />
