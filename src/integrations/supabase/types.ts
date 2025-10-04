@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      deposits: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          boss_notes: string | null
+          created_at: string
+          id: string
+          screenshot_url: string
+          status: Database["public"]["Enums"]["deposit_status"]
+          user_id: string
+          utr_number: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          boss_notes?: string | null
+          created_at?: string
+          id?: string
+          screenshot_url: string
+          status?: Database["public"]["Enums"]["deposit_status"]
+          user_id: string
+          utr_number: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          boss_notes?: string | null
+          created_at?: string
+          id?: string
+          screenshot_url?: string
+          status?: Database["public"]["Enums"]["deposit_status"]
+          user_id?: string
+          utr_number?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -38,6 +77,131 @@ export type Database = {
           id?: string
           phone_number?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      tournament_registrations: {
+        Row: {
+          id: string
+          prize_amount: number | null
+          rank: number | null
+          registered_at: string
+          tournament_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          prize_amount?: number | null
+          rank?: number | null
+          registered_at?: string
+          tournament_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          prize_amount?: number | null
+          rank?: number | null
+          registered_at?: string
+          tournament_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_registrations_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          created_at: string
+          created_by: string
+          entry_fee: number
+          filled_slots: number
+          game_mode: string | null
+          id: string
+          name: string
+          prize_distribution: Json
+          room_id: string | null
+          room_password: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["tournament_status"]
+          total_slots: number
+          tournament_rules: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          entry_fee: number
+          filled_slots?: number
+          game_mode?: string | null
+          id?: string
+          name: string
+          prize_distribution?: Json
+          room_id?: string | null
+          room_password?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["tournament_status"]
+          total_slots: number
+          tournament_rules?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          entry_fee?: number
+          filled_slots?: number
+          game_mode?: string | null
+          id?: string
+          name?: string
+          prize_distribution?: Json
+          room_id?: string | null
+          room_password?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["tournament_status"]
+          total_slots?: number
+          tournament_rules?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          description: string
+          id: string
+          reference_id: string | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          description: string
+          id?: string
+          reference_id?: string | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          description?: string
+          id?: string
+          reference_id?: string | null
+          type?: Database["public"]["Enums"]["transaction_type"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -80,6 +244,45 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawals: {
+        Row: {
+          amount: number
+          cancellation_reason: string | null
+          created_at: string
+          id: string
+          payout_utr: string | null
+          processed_at: string | null
+          processed_by: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          upi_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          cancellation_reason?: string | null
+          created_at?: string
+          id?: string
+          payout_utr?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          upi_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          cancellation_reason?: string | null
+          created_at?: string
+          id?: string
+          payout_utr?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          upi_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -96,9 +299,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      register_for_tournament: {
+        Args: { p_tournament_id: string; p_user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "boss" | "admin" | "player"
+      deposit_status: "pending" | "approved" | "rejected"
+      tournament_status: "upcoming" | "active" | "completed" | "cancelled"
+      transaction_type:
+        | "deposit"
+        | "withdrawal"
+        | "tournament_entry"
+        | "tournament_win"
+        | "refund"
+      withdrawal_status: "pending" | "approved" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -227,6 +443,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["boss", "admin", "player"],
+      deposit_status: ["pending", "approved", "rejected"],
+      tournament_status: ["upcoming", "active", "completed", "cancelled"],
+      transaction_type: [
+        "deposit",
+        "withdrawal",
+        "tournament_entry",
+        "tournament_win",
+        "refund",
+      ],
+      withdrawal_status: ["pending", "approved", "cancelled"],
     },
   },
 } as const
