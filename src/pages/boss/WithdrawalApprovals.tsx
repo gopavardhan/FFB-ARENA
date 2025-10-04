@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X } from "lucide-react";
+import { Check, X, Copy } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,7 +50,6 @@ const WithdrawalApprovals = () => {
       if (error) throw error;
       if (!withdrawalsData || withdrawalsData.length === 0) return [];
 
-      // Fetch profiles for all withdrawals
       const userIds = withdrawalsData.map(w => w.user_id);
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
@@ -59,7 +58,6 @@ const WithdrawalApprovals = () => {
 
       if (profilesError) throw profilesError;
 
-      // Merge withdrawals with profiles
       return withdrawalsData.map(withdrawal => ({
         ...withdrawal,
         profiles: profilesData?.find(p => p.id === withdrawal.user_id) || { full_name: "Unknown", email: "Unknown" },
@@ -69,7 +67,6 @@ const WithdrawalApprovals = () => {
 
   const approveWithdrawalMutation = useMutation({
     mutationFn: async ({ withdrawalId, utr }: { withdrawalId: string; utr: string }) => {
-      // Call backend function to approve withdrawal
       const { data, error } = await supabase.rpc("approve_withdrawal", {
         p_withdrawal_id: withdrawalId,
         p_boss_id: user?.id,
@@ -104,7 +101,6 @@ const WithdrawalApprovals = () => {
 
   const cancelWithdrawalMutation = useMutation({
     mutationFn: async ({ withdrawalId, reason }: { withdrawalId: string; reason: string }) => {
-      // Call backend function to cancel withdrawal with refund
       const { data, error } = await supabase.rpc("cancel_withdrawal", {
         p_withdrawal_id: withdrawalId,
         p_boss_id: user?.id,
@@ -136,6 +132,14 @@ const WithdrawalApprovals = () => {
       });
     },
   });
+
+  const handleCopyUpiId = (upiId: string) => {
+    navigator.clipboard.writeText(upiId);
+    toast({
+      title: "Copied",
+      description: "UPI ID copied to clipboard",
+    });
+  };
 
   const handleApprove = () => {
     if (selectedWithdrawal && payoutUtr.trim().length === 12) {
@@ -187,7 +191,17 @@ const WithdrawalApprovals = () => {
                       </div>
                       <div>
                         <p className="text-muted-foreground">UPI ID</p>
-                        <p className="font-mono break-all">{withdrawal.upi_id}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-mono break-all text-xs">{withdrawal.upi_id}</p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 shrink-0"
+                            onClick={() => handleCopyUpiId(withdrawal.upi_id)}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="col-span-2">
                         <p className="text-muted-foreground">Player Email</p>

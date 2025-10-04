@@ -42,9 +42,38 @@ export const DepositDialog = ({ open, onOpenChange }: DepositDialogProps) => {
       return;
     }
 
+    // Validate UTR (12 digits)
+    if (!/^\d{12}$/.test(utrNumber)) {
+      toast({
+        title: "Error",
+        description: "UTR must be exactly 12 digits",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploading(true);
 
     try {
+      // Check if UTR already exists
+      const { data: existingDeposit, error: checkError } = await supabase
+        .from("deposits")
+        .select("id")
+        .eq("utr_number", utrNumber)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingDeposit) {
+        toast({
+          title: "Error",
+          description: "This UTR number has already been used. Each UTR can only be used once.",
+          variant: "destructive",
+        });
+        setUploading(false);
+        return;
+      }
+
       // Upload screenshot to Supabase Storage with user folder structure
       const fileExt = screenshot.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
@@ -186,7 +215,7 @@ export const DepositDialog = ({ open, onOpenChange }: DepositDialogProps) => {
               {screenshot && <Upload className="w-4 h-4 text-green-500" />}
             </div>
             <p className="text-xs text-muted-foreground">
-              Upload a clear screenshot of your payment
+              Find UTR in your payment confirmation message. Each UTR can only be used once.
             </p>
           </div>
 

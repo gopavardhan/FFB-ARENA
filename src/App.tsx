@@ -18,9 +18,14 @@ import BossDashboard from "./pages/boss/BossDashboard";
 import AdminManagement from "./pages/boss/AdminManagement";
 import DepositApprovals from "./pages/boss/DepositApprovals";
 import WithdrawalApprovals from "./pages/boss/WithdrawalApprovals";
+import AllTransactions from "./pages/boss/AllTransactions";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import TournamentCreate from "./pages/admin/TournamentCreate";
 import TournamentManagement from "./pages/admin/TournamentManagement";
+import Notifications from "./pages/player/Notifications";
+import Support from "./pages/player/Support";
+import TermsConditions from "./pages/player/TermsConditions";
+import PrivacyPolicy from "./pages/player/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,12 +49,17 @@ const App = () => (
             <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+            <Route path="/terms" element={<ProtectedRoute><TermsConditions /></ProtectedRoute>} />
+            <Route path="/privacy" element={<ProtectedRoute><PrivacyPolicy /></ProtectedRoute>} />
             
             {/* Boss Routes */}
             <Route path="/boss/dashboard" element={<ProtectedRoute allowedRoles={['boss']}><BossDashboard /></ProtectedRoute>} />
             <Route path="/boss/admins" element={<ProtectedRoute allowedRoles={['boss']}><AdminManagement /></ProtectedRoute>} />
             <Route path="/boss/deposits" element={<ProtectedRoute allowedRoles={['boss']}><DepositApprovals /></ProtectedRoute>} />
             <Route path="/boss/withdrawals" element={<ProtectedRoute allowedRoles={['boss']}><WithdrawalApprovals /></ProtectedRoute>} />
+            <Route path="/boss/transactions" element={<ProtectedRoute allowedRoles={['boss']}><AllTransactions /></ProtectedRoute>} />
             
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />

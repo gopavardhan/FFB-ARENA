@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, Eye, Download } from "lucide-react";
+import { Check, X, Eye, Copy, Search } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,9 +31,9 @@ interface Deposit {
 
 const DepositApprovals = () => {
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
-  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [searchUtr, setSearchUtr] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -49,7 +50,6 @@ const DepositApprovals = () => {
       if (error) throw error;
       if (!depositsData || depositsData.length === 0) return [];
 
-      // Fetch profiles for all deposits
       const userIds = depositsData.map(d => d.user_id);
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
@@ -58,7 +58,6 @@ const DepositApprovals = () => {
 
       if (profilesError) throw profilesError;
 
-      // Merge deposits with profiles
       return depositsData.map(deposit => ({
         ...deposit,
         profiles: profilesData?.find(p => p.id === deposit.user_id) || { full_name: "Unknown", email: "Unknown" },
@@ -71,7 +70,6 @@ const DepositApprovals = () => {
       const deposit = deposits?.find(d => d.id === depositId);
       if (!deposit) throw new Error("Deposit not found");
 
-      // Call backend function to approve deposit
       const { data, error } = await supabase.rpc("approve_deposit", {
         p_deposit_id: depositId,
         p_boss_id: user?.id,
@@ -86,7 +84,6 @@ const DepositApprovals = () => {
         throw new Error(result.error || "Approval failed");
       }
 
-      // Delete screenshot from storage
       if (result.screenshot_url) {
         const screenshotPath = result.screenshot_url.split('/').pop();
         if (screenshotPath) {
@@ -117,7 +114,6 @@ const DepositApprovals = () => {
       const deposit = deposits?.find(d => d.id === depositId);
       if (!deposit) throw new Error("Deposit not found");
 
-      // Call backend function to reject deposit
       const { data, error } = await supabase.rpc("reject_deposit", {
         p_deposit_id: depositId,
         p_boss_id: user?.id,
@@ -132,7 +128,6 @@ const DepositApprovals = () => {
         throw new Error(result.error || "Rejection failed");
       }
 
-      // Delete screenshot from storage
       if (result.screenshot_url) {
         const screenshotPath = result.screenshot_url.split('/').pop();
         if (screenshotPath) {
@@ -170,6 +165,14 @@ const DepositApprovals = () => {
     }
   };
 
+  const handleCopyUtr = (utr: string) => {
+    navigator.clipboard.writeText(utr);
+    toast({
+      title: "Copied",
+      description: "UTR copied to clipboard",
+    });
+  };
+
   const handleReject = () => {
     if (selectedDeposit && rejectionReason.trim()) {
       rejectDepositMutation.mutate({
@@ -179,6 +182,10 @@ const DepositApprovals = () => {
     }
   };
 
+  const filteredDeposits = deposits?.filter(deposit => 
+    !searchUtr || deposit.utr_number.includes(searchUtr)
+  );
+
   return (
     <MainLayout showBottomNav={false}>
       <PageHeader
@@ -187,14 +194,26 @@ const DepositApprovals = () => {
         subtitle="Review and approve pending deposits"
       />
 
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder="Search by UTR number..."
+            value={searchUtr}
+            onChange={(e) => setSearchUtr(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <LoadingSpinner size="lg" />
         </div>
       ) : (
         <div className="grid gap-4">
-          {deposits && deposits.length > 0 ? (
-            deposits.map((deposit) => (
+          {filteredDeposits && filteredDeposits.length > 0 ? (
+            filteredDeposits.map((deposit) => (
               <Card key={deposit.id}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-semibold">
@@ -211,7 +230,17 @@ const DepositApprovals = () => {
                       </div>
                       <div>
                         <p className="text-muted-foreground">UTR Number</p>
-                        <p className="font-mono">{deposit.utr_number}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-mono">{deposit.utr_number}</p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => handleCopyUtr(deposit.utr_number)}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="col-span-2">
                         <p className="text-muted-foreground">Player Email</p>
@@ -259,7 +288,9 @@ const DepositApprovals = () => {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Check className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No pending deposits</p>
+                <p className="text-muted-foreground">
+                  {searchUtr ? "No deposits found matching search" : "No pending deposits"}
+                </p>
               </CardContent>
             </Card>
           )}

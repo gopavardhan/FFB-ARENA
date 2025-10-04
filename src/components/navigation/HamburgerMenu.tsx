@@ -1,4 +1,4 @@
-import { X, Bell, History, HelpCircle, FileText, Shield, LogOut } from "lucide-react";
+import { X, Bell, History, MessageCircle, FileText, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -9,13 +9,13 @@ interface HamburgerMenuProps {
   onClose: () => void;
 }
 
-const menuItems = [
-  { icon: Bell, label: "Notifications", path: "/notifications" },
-  { icon: History, label: "Match History", path: "/history" },
-  { icon: HelpCircle, label: "Help & Support", path: "/support" },
-  { icon: FileText, label: "Terms & Conditions", path: "/terms" },
-  { icon: Shield, label: "Privacy Policy", path: "/privacy" },
-];
+  const menuItems = [
+    { icon: Bell, label: "Notifications", path: "/notifications" },
+    { icon: History, label: "Match History", path: "/history" },
+    { icon: MessageCircle, label: "Help & Support", path: "/support" },
+    { icon: FileText, label: "Terms & Conditions", path: "/terms" },
+    { icon: Shield, label: "Privacy Policy", path: "/privacy" },
+  ];
 
 export const HamburgerMenu = ({ isOpen, onClose }: HamburgerMenuProps) => {
   const { signOut } = useAuth();

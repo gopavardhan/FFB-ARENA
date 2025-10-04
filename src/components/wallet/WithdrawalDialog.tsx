@@ -47,10 +47,10 @@ export const WithdrawalDialog = ({ open, onOpenChange }: WithdrawalDialogProps) 
       return;
     }
 
-    if (finalAmount < 100) {
+    if (finalAmount < 50) {
       toast({
         title: "Error",
-        description: "Minimum withdrawal amount is ₹100",
+        description: "Minimum withdrawal amount is ₹50",
         variant: "destructive",
       });
       return;
@@ -119,11 +119,11 @@ export const WithdrawalDialog = ({ open, onOpenChange }: WithdrawalDialogProps) 
             <Input
               id="amount"
               type="number"
-              min="100"
+              min="50"
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter amount (min ₹100)"
+              placeholder="Enter amount (min ₹50)"
               required
             />
           </div>

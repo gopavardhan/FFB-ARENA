@@ -6,11 +6,13 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Users, DollarSign, TrendingUp, Activity as ActivityIcon, UserCog, Wallet, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBossActivities } from "@/hooks/useActivities";
+import { useBossCounts } from "@/hooks/useBossCounts";
 
 const BossDashboard = () => {
   const navigate = useNavigate();
 
   const { data: activities = [] } = useBossActivities();
+  const { data: counts } = useBossCounts();
 
   const quickActions = [
     {
@@ -24,14 +26,14 @@ const BossDashboard = () => {
       icon: ArrowDownToLine,
       onClick: () => navigate("/boss/deposits"),
       variant: "outline" as const,
-      count: 3,
+      count: counts?.pendingDeposits,
     },
     {
       label: "Pending Withdrawals",
       icon: ArrowUpFromLine,
       onClick: () => navigate("/boss/withdrawals"),
       variant: "outline" as const,
-      count: 2,
+      count: counts?.pendingWithdrawals,
     },
     {
       label: "View All Transactions",
@@ -69,7 +71,7 @@ const BossDashboard = () => {
         />
         <StatCard
           title="Pending Actions"
-          value="5"
+          value={counts?.totalPending?.toString() || "0"}
           icon={ActivityIcon}
           iconColor="accent"
         />
