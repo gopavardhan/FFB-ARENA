@@ -23,9 +23,7 @@ const TournamentCreate = () => {
     totalSlots: "",
     startDate: "",
     gameMode: "Squad",
-    prizeFirst: "",
-    prizeSecond: "",
-    prizeThird: "",
+    prizeAmount: "",
     roomId: "",
     roomPassword: "",
     tournamentRules: "",
@@ -37,9 +35,7 @@ const TournamentCreate = () => {
 
     try {
       const prizeDistribution = {
-        "1": parseFloat(formData.prizeFirst),
-        "2": parseFloat(formData.prizeSecond) || 0,
-        "3": parseFloat(formData.prizeThird) || 0,
+        "1": parseFloat(formData.prizeAmount),
       };
 
       // Validate input
@@ -184,42 +180,16 @@ const TournamentCreate = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="prizeFirst">1st Prize (₹) *</Label>
+              <Label htmlFor="prizeAmount">Winner Prize (₹) *</Label>
               <Input
-                id="prizeFirst"
+                id="prizeAmount"
                 type="number"
                 min="0"
                 step="0.01"
-                value={formData.prizeFirst}
-                onChange={(e) => handleChange("prizeFirst", e.target.value)}
-                placeholder="Enter 1st prize"
+                value={formData.prizeAmount}
+                onChange={(e) => handleChange("prizeAmount", e.target.value)}
+                placeholder="Enter winner prize"
                 required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="prizeSecond">2nd Prize (₹)</Label>
-              <Input
-                id="prizeSecond"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.prizeSecond}
-                onChange={(e) => handleChange("prizeSecond", e.target.value)}
-                placeholder="Enter 2nd prize (optional)"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="prizeThird">3rd Prize (₹)</Label>
-              <Input
-                id="prizeThird"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.prizeThird}
-                onChange={(e) => handleChange("prizeThird", e.target.value)}
-                placeholder="Enter 3rd prize (optional)"
               />
             </div>
 
