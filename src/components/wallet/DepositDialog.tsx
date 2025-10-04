@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { depositSchema } from "@/lib/validation";
-import upiQrCode from "@/assets/upi-qr-code.png";
+import upiQrCode from "@/assets/upi-qr-code.jpg";
 
 interface DepositDialogProps {
   open: boolean;

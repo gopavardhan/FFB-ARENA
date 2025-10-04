@@ -4,7 +4,7 @@ import { useState } from "react";
 import { HamburgerMenu } from "./HamburgerMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
-import ffbArenaLogo from "@/assets/ffb-arena-logo.png";
+import ffbArenaLogo from "@/assets/ffb-arena-logo.jpg";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
