@@ -135,27 +135,26 @@ export const DepositDialog = ({ open, onOpenChange }: DepositDialogProps) => {
 
           <div className="space-y-2">
             <Label>UPI Payment Instructions</Label>
-            <div className="p-4 bg-secondary/10 rounded-lg space-y-3">
+            <div className="p-3 bg-secondary/10 rounded-lg space-y-2">
               <div className="flex justify-center">
                 <img 
                   src={upiQrCode} 
                   alt="UPI QR Code" 
-                  className="w-48 h-48 rounded-lg border-2 border-secondary/30"
+                  className="w-36 h-36 rounded-lg border-2 border-secondary/30"
                 />
               </div>
-              <div className="text-center space-y-2">
-                <p className="text-sm font-semibold">Scan QR Code or Use UPI ID</p>
-                <p className="text-sm">UPI ID: <span className="font-bold text-secondary">9848488229-6.wallet@phonepe</span></p>
-                <p className="text-xs text-muted-foreground">Send payment and note your UTR number</p>
+              <div className="text-center space-y-1">
+                <p className="text-xs font-semibold">Scan QR or Use UPI ID</p>
+                <p className="text-xs">UPI ID: <span className="font-bold text-secondary">9848488229-6.wallet@phonepe</span></p>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={handleDownloadQR}
-                  className="mt-2"
+                  className="mt-1"
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Download QR Code
+                  Download QR
                 </Button>
               </div>
             </div>
