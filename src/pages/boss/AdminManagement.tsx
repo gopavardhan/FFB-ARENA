@@ -144,6 +144,7 @@ const AdminManagement = () => {
     <MainLayout showBottomNav={false}>
       <PageHeader
         title="Admin Management"
+        showBack={true}
         subtitle="Create and manage admin accounts"
       />
 

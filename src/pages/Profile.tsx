@@ -7,6 +7,7 @@ const Profile = () => {
       <PageHeader 
         title="Profile" 
         subtitle="Manage your account settings"
+        showBack={true}
       />
       <div className="grid gap-4">
         <p className="text-muted-foreground">Profile settings coming soon...</p>

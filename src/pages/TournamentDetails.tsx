@@ -91,7 +91,8 @@ const TournamentDetails = () => {
       </Button>
 
       <PageHeader 
-        title={tournament.name} 
+        title={tournament.name}
+        showBack={true}
         subtitle={`Tournament Details - ${tournament.game_mode || "Squad"}`}
       />
 

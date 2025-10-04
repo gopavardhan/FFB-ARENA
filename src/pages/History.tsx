@@ -37,7 +37,8 @@ const History = () => {
   return (
     <MainLayout>
       <PageHeader 
-        title="Match History" 
+        title="Match History"
+        showBack={true}
         subtitle="Your tournament participation and results"
       />
 

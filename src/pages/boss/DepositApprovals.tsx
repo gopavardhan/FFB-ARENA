@@ -183,6 +183,7 @@ const DepositApprovals = () => {
     <MainLayout showBottomNav={false}>
       <PageHeader
         title="Deposit Approvals"
+        showBack={true}
         subtitle="Review and approve pending deposits"
       />
 

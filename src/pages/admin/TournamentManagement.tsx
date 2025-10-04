@@ -31,7 +31,8 @@ const TournamentManagement = () => {
   return (
     <MainLayout>
       <PageHeader 
-        title="Tournament Management" 
+        title="Tournament Management"
+        showBack={true}
         subtitle="Create and manage tournaments"
       />
 

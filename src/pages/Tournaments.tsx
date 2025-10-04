@@ -54,7 +54,8 @@ const Tournaments = () => {
   return (
     <MainLayout>
       <PageHeader 
-        title="Tournaments" 
+        title="Tournaments"
+        showBack={true}
         subtitle="Browse and join upcoming tournaments"
       />
 

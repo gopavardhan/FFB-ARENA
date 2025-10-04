@@ -159,6 +159,7 @@ const WithdrawalApprovals = () => {
     <MainLayout showBottomNav={false}>
       <PageHeader
         title="Withdrawal Approvals"
+        showBack={true}
         subtitle="Process pending withdrawal requests"
       />
 

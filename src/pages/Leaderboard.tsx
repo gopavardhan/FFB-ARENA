@@ -78,7 +78,8 @@ const Leaderboard = () => {
   return (
     <MainLayout>
       <PageHeader 
-        title="Leaderboard" 
+        title="Leaderboard"
+        showBack={true}
         subtitle="Top players and rankings"
       />
 

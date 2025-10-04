@@ -112,7 +112,8 @@ const TournamentCreate = () => {
   return (
     <MainLayout>
       <PageHeader 
-        title="Create Tournament" 
+        title="Create Tournament"
+        showBack={true}
         subtitle="Set up a new tournament"
       />
 

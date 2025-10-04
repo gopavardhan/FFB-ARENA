@@ -76,7 +76,8 @@ const Wallet = () => {
   return (
     <MainLayout>
       <PageHeader 
-        title="Wallet" 
+        title="Wallet"
+        showBack={true}
         subtitle="Manage your balance and transactions"
       />
 
