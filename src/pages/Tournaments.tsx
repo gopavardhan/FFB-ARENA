@@ -5,22 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTournaments, useRegisterTournament, useUserRegistrations } from "@/hooks/useTournaments";
+import { useTournaments, useUserRegistrations } from "@/hooks/useTournaments";
 import { useAuth } from "@/contexts/AuthContext";
 import { Trophy, Users, Calendar, DollarSign, Search } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
+import { useNavigate } from "react-router-dom";
 
 const Tournaments = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "upcoming" | "active" | "completed">("all");
   const { data: tournaments, isLoading } = useTournaments(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
   const { data: userRegistrations } = useUserRegistrations(user?.id || "");
-  const registerMutation = useRegisterTournament();
 
   const filteredTournaments = tournaments?.filter((tournament) =>
     tournament.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -42,12 +43,6 @@ const Tournaments = () => {
         return "bg-red-500/10 text-red-500 border-red-500/20";
       default:
         return "bg-secondary/10 text-secondary border-secondary/20";
-    }
-  };
-
-  const handleRegister = (tournamentId: string) => {
-    if (user) {
-      registerMutation.mutate({ tournamentId, userId: user.id });
     }
   };
 
@@ -90,7 +85,11 @@ const Tournaments = () => {
       ) : filteredTournaments && filteredTournaments.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTournaments.map((tournament) => (
-            <Card key={tournament.id} className="p-6 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-shadow">
+            <Card 
+              key={tournament.id} 
+              className="p-6 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => navigate(`/tournaments/${tournament.id}`)}
+            >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-secondary/10 rounded-lg">
@@ -127,25 +126,23 @@ const Tournaments = () => {
               </div>
 
               {isRegistered(tournament.id) ? (
-                <Button variant="outline" className="w-full" disabled>
+                <Button variant="outline" className="w-full" disabled onClick={(e) => e.stopPropagation()}>
                   Already Registered
                 </Button>
               ) : tournament.filled_slots >= tournament.total_slots ? (
-                <Button variant="outline" className="w-full" disabled>
+                <Button variant="outline" className="w-full" disabled onClick={(e) => e.stopPropagation()}>
                   Tournament Full
                 </Button>
-              ) : tournament.status === "upcoming" ? (
+              ) : (
                 <Button 
                   variant="premium" 
                   className="w-full"
-                  onClick={() => handleRegister(tournament.id)}
-                  disabled={registerMutation.isPending}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/tournaments/${tournament.id}`);
+                  }}
                 >
-                  {registerMutation.isPending ? "Registering..." : "Join Tournament"}
-                </Button>
-              ) : (
-                <Button variant="outline" className="w-full" disabled>
-                  Registration Closed
+                  View Details
                 </Button>
               )}
             </Card>

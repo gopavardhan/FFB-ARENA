@@ -8,12 +8,15 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Tournaments from "./pages/Tournaments";
+import TournamentDetails from "./pages/TournamentDetails";
 import Wallet from "./pages/Wallet";
 import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import History from "./pages/History";
 import BossDashboard from "./pages/boss/BossDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import TournamentCreate from "./pages/admin/TournamentCreate";
+import TournamentManagement from "./pages/admin/TournamentManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +34,7 @@ const App = () => (
             {/* Player Routes */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/tournaments" element={<ProtectedRoute><Tournaments /></ProtectedRoute>} />
+            <Route path="/tournaments/:id" element={<ProtectedRoute><TournamentDetails /></ProtectedRoute>} />
             <Route path="/wallet" element={<ProtectedRoute allowedRoles={['player']}><Wallet /></ProtectedRoute>} />
             <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
@@ -41,6 +45,8 @@ const App = () => (
             
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/tournaments" element={<ProtectedRoute allowedRoles={['admin', 'boss']}><TournamentManagement /></ProtectedRoute>} />
+            <Route path="/admin/tournaments/create" element={<ProtectedRoute allowedRoles={['admin', 'boss']}><TournamentCreate /></ProtectedRoute>} />
             
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

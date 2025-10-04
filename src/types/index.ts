@@ -25,6 +25,9 @@ export interface Tournament {
   status: TournamentStatus;
   prize_distribution: Record<string, number>;
   room_id?: string;
+  room_password?: string;
+  game_mode?: string;
+  tournament_rules?: string;
   created_by: string;
   created_at: string;
   updated_at: string;

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -9,9 +10,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Wallet as WalletIcon, Plus, Minus, History } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
+import { DepositDialog } from "@/components/wallet/DepositDialog";
+import { WithdrawalDialog } from "@/components/wallet/WithdrawalDialog";
 
 const Wallet = () => {
   const { user } = useAuth();
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [withdrawalOpen, setWithdrawalOpen] = useState(false);
   const { data: balance, isLoading: balanceLoading } = useUserBalance(user?.id || "");
   const { data: transactions, isLoading: transactionsLoading } = useUserTransactions(user?.id || "");
   const { data: deposits } = useUserDeposits(user?.id || "");
@@ -86,11 +91,11 @@ const Wallet = () => {
               </div>
             </div>
             <div className="flex gap-3">
-              <Button variant="premium" className="flex-1">
+              <Button variant="premium" className="flex-1" onClick={() => setDepositOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Money
               </Button>
-              <Button variant="outline" className="flex-1">
+              <Button variant="outline" className="flex-1" onClick={() => setWithdrawalOpen(true)}>
                 <Minus className="w-4 h-4 mr-2" />
                 Withdraw
               </Button>
@@ -222,6 +227,9 @@ const Wallet = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      <DepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
+      <WithdrawalDialog open={withdrawalOpen} onOpenChange={setWithdrawalOpen} />
     </MainLayout>
   );
 };
