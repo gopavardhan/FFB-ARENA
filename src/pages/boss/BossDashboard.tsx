@@ -1,49 +1,16 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
-import { ActivityFeed, Activity } from "@/components/dashboard/ActivityFeed";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Users, DollarSign, TrendingUp, Activity as ActivityIcon, UserCog, Wallet, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useBossActivities } from "@/hooks/useActivities";
 
 const BossDashboard = () => {
   const navigate = useNavigate();
 
-  // Mock data - will be replaced with real data from Supabase
-  const recentActivities: Activity[] = [
-    {
-      id: "1",
-      type: "payment",
-      title: "New Deposit Request",
-      description: "Player #1234 requested deposit of ₹500",
-      timestamp: new Date(Date.now() - 1000 * 60 * 5),
-      status: "pending"
-    },
-    {
-      id: "2",
-      type: "payment",
-      title: "Withdrawal Approved",
-      description: "Withdrawal of ₹1000 approved for Player #5678",
-      timestamp: new Date(Date.now() - 1000 * 60 * 15),
-      status: "success"
-    },
-    {
-      id: "3",
-      type: "user",
-      title: "New User Registration",
-      description: "john.doe@example.com registered as player",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-      status: "success"
-    },
-    {
-      id: "4",
-      type: "tournament",
-      title: "Tournament Completed",
-      description: "Friday Night Battle concluded with 50 players",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60),
-      status: "success"
-    },
-  ];
+  const { data: activities = [] } = useBossActivities();
 
   const quickActions = [
     {
@@ -110,7 +77,7 @@ const BossDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <ActivityFeed activities={recentActivities} title="Recent Platform Activity" />
+          <ActivityFeed activities={activities} title="Recent Platform Activity" />
         </div>
         <div>
           <QuickActions actions={quickActions} />

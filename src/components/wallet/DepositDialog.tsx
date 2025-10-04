@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useCreateDeposit } from "@/hooks/useWallet";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload } from "lucide-react";
+import { Upload, Download } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { depositSchema } from "@/lib/validation";
 import upiQrCode from "@/assets/upi-qr-code.jpg";
@@ -96,6 +96,19 @@ export const DepositDialog = ({ open, onOpenChange }: DepositDialogProps) => {
     }
   };
 
+  const handleDownloadQR = () => {
+    const link = document.createElement("a");
+    link.href = upiQrCode;
+    link.download = "FFB-ARENA-UPI-QR.jpg";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({
+      title: "Success",
+      description: "QR code downloaded successfully",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -130,10 +143,20 @@ export const DepositDialog = ({ open, onOpenChange }: DepositDialogProps) => {
                   className="w-48 h-48 rounded-lg border-2 border-secondary/30"
                 />
               </div>
-              <div className="text-center space-y-1">
+              <div className="text-center space-y-2">
                 <p className="text-sm font-semibold">Scan QR Code or Use UPI ID</p>
                 <p className="text-sm">UPI ID: <span className="font-bold text-secondary">9848488229-6.wallet@phonepe</span></p>
                 <p className="text-xs text-muted-foreground">Send payment and note your UTR number</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadQR}
+                  className="mt-2"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download QR Code
+                </Button>
               </div>
             </div>
           </div>

@@ -1,11 +1,11 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
-import { ActivityFeed, Activity } from "@/components/dashboard/ActivityFeed";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trophy, Wallet, TrendingUp, Plus, History, Award } from "lucide-react";
+import { Trophy, Wallet, TrendingUp, Plus, History, Award, MessageCircle, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRealtimeBalance } from "@/hooks/useRealtimeBalance";
@@ -13,6 +13,7 @@ import { useRealtimeTournaments } from "@/hooks/useRealtimeTournaments";
 import { useRealtimeDepositsWithdrawals } from "@/hooks/useRealtimeDepositsWithdrawals";
 import { useUserBalance } from "@/hooks/useWallet";
 import { useTournaments } from "@/hooks/useTournaments";
+import { usePlayerActivities } from "@/hooks/useActivities";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -26,34 +27,7 @@ const Index = () => {
   // Fetch live data
   const { data: balance } = useUserBalance(user?.id || "");
   const { data: tournaments } = useTournaments({ status: "upcoming" });
-
-  // Mock data - will be replaced with real data from Supabase
-  const recentActivities: Activity[] = [
-    {
-      id: "1",
-      type: "tournament",
-      title: "Tournament Joined",
-      description: "You joined 'Friday Night Battle' - Entry fee: ₹50",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-      status: "success"
-    },
-    {
-      id: "2",
-      type: "tournament",
-      title: "Tournament Completed",
-      description: "Finished 5th in 'Morning Challenge' - Won ₹100",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3),
-      status: "success"
-    },
-    {
-      id: "3",
-      type: "payment",
-      title: "Balance Added",
-      description: "Successfully added ₹500 to your wallet",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      status: "success"
-    },
-  ];
+  const { data: activities = [] } = usePlayerActivities(user?.id);
 
   const quickActions = [
     {
@@ -135,11 +109,43 @@ const Index = () => {
             </div>
           </Card>
 
-          <ActivityFeed activities={recentActivities} title="Your Recent Activity" />
+          <ActivityFeed activities={activities} title="Your Recent Activity" />
         </div>
 
-        <div>
+        <div className="space-y-6">
           <QuickActions actions={quickActions} />
+          
+          {/* Contact Support Card */}
+          <Card className="p-6 bg-gradient-to-br from-secondary/5 to-accent/5 border-secondary/20">
+            <h3 className="font-orbitron font-bold text-lg mb-4">Need Help?</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              For any queries or issues, reach out to us:
+            </p>
+            <div className="space-y-3">
+              <a
+                href="https://chat.whatsapp.com/Cq9M7UypAlWEPs0AuQnTpP?mode=ems_email_t"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-lg bg-green-500/10 hover:bg-green-500/20 transition-colors"
+              >
+                <MessageCircle className="w-5 h-5 text-green-500" />
+                <div>
+                  <p className="font-semibold text-sm">WhatsApp Group</p>
+                  <p className="text-xs text-muted-foreground">Join FFB ARENA community</p>
+                </div>
+              </a>
+              <a
+                href="mailto:ffb.arena@gmail.com"
+                className="flex items-center gap-3 p-3 rounded-lg bg-secondary/10 hover:bg-secondary/20 transition-colors"
+              >
+                <Mail className="w-5 h-5 text-secondary" />
+                <div>
+                  <p className="font-semibold text-sm">Email Support</p>
+                  <p className="text-xs text-muted-foreground">ffb.arena@gmail.com</p>
+                </div>
+              </a>
+            </div>
+          </Card>
         </div>
       </div>
     </MainLayout>
