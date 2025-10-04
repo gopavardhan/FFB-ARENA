@@ -28,13 +28,16 @@ const signupSchema = z.object({
 });
 
 const Auth = () => {
-  const { user, signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, resetPassword, updatePassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -49,12 +52,22 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [signupErrors, setSignupErrors] = useState<Record<string, string>>({});
 
+  // Check for password recovery token
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery') {
+      setIsPasswordRecovery(true);
+    }
+  }, []);
+
   // Redirect if already authenticated
   useEffect(() => {
-    if (user) {
+    if (user && !isPasswordRecovery) {
       navigate("/");
     }
-  }, [user, navigate]);
+  }, [user, navigate, isPasswordRecovery]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,6 +231,52 @@ const Auth = () => {
     }
   };
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmNewPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await updatePassword(newPassword);
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Your password has been updated successfully!",
+        });
+        setIsPasswordRecovery(false);
+        setNewPassword("");
+        setConfirmNewPassword("");
+        navigate("/");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getPasswordStrength = (password: string) => {
     let strength = 0;
     if (password.length >= 8) strength++;
@@ -231,6 +290,61 @@ const Auth = () => {
   const passwordStrength = getPasswordStrength(signupPassword);
   const strengthColors = ["bg-destructive", "bg-destructive", "bg-accent", "bg-secondary", "bg-secondary"];
   const strengthLabels = ["Very Weak", "Weak", "Fair", "Strong", "Very Strong"];
+
+  // If in password recovery mode, show update password form
+  if (isPasswordRecovery) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md p-8 bg-card border-border">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-secondary to-accent rounded-xl flex items-center justify-center font-orbitron font-bold text-2xl text-primary mx-auto mb-4">
+              FF
+            </div>
+            <h1 className="text-3xl font-orbitron font-bold text-gradient mb-2">Reset Password</h1>
+            <p className="text-muted-foreground font-inter">Enter your new password</p>
+          </div>
+
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <div className="relative">
+                <Input
+                  id="new-password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+              <Input
+                id="confirm-new-password"
+                type="password"
+                placeholder="••••••••"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+              />
+            </div>
+
+            <Button type="submit" variant="premium" className="w-full" disabled={loading}>
+              {loading ? "Updating..." : "Update Password"}
+            </Button>
+          </form>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

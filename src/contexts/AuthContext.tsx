@@ -14,6 +14,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (newPassword: string) => Promise<{ error: any }>;
   refreshUserRole: () => Promise<void>;
 }
 
@@ -175,6 +176,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (error: any) {
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUserRole(null);
@@ -193,6 +207,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signInWithGoogle,
         signOut,
         resetPassword,
+        updatePassword,
         refreshUserRole,
       }}
     >
