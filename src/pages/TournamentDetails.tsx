@@ -9,6 +9,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Trophy, Users, Calendar, DollarSign, Award, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const TournamentDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +21,24 @@ const TournamentDetails = () => {
   const registerMutation = useRegisterTournament();
 
   const isRegistered = userRegistrations?.some((reg) => reg.tournament_id === id);
+
+  // Fetch room credentials for registered users
+  const { data: credentials } = useQuery({
+    queryKey: ["tournament-credentials", id],
+    queryFn: async () => {
+      if (!id || !isRegistered) return null;
+      
+      const { data, error } = await supabase
+        .from("tournament_credentials")
+        .select("*")
+        .eq("tournament_id", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!isRegistered,
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -124,13 +144,15 @@ const TournamentDetails = () => {
               </div>
             </div>
 
-            {isRegistered && tournament.room_id && (
+            {isRegistered && credentials && (credentials.room_id || credentials.room_password) && (
               <div className="mt-6 p-4 bg-secondary/10 border border-secondary/20 rounded-lg">
                 <h4 className="font-semibold mb-2">Room Details</h4>
                 <div className="space-y-1">
-                  <p className="text-sm">Room ID: <span className="font-mono font-bold">{tournament.room_id}</span></p>
-                  {tournament.room_password && (
-                    <p className="text-sm">Password: <span className="font-mono font-bold">{tournament.room_password}</span></p>
+                  {credentials.room_id && (
+                    <p className="text-sm">Room ID: <span className="font-mono font-bold">{credentials.room_id}</span></p>
+                  )}
+                  {credentials.room_password && (
+                    <p className="text-sm">Password: <span className="font-mono font-bold">{credentials.room_password}</span></p>
                   )}
                 </div>
               </div>

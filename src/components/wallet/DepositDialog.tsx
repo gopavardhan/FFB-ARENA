@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { depositSchema } from "@/lib/validation";
 
 interface DepositDialogProps {
   open: boolean;
@@ -40,38 +41,41 @@ export const DepositDialog = ({ open, onOpenChange }: DepositDialogProps) => {
       return;
     }
 
-    if (utrNumber.length !== 12) {
-      toast({
-        title: "Error",
-        description: "UTR number must be 12 digits",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setUploading(true);
 
     try {
-      // Upload screenshot to Supabase Storage
+      // Upload screenshot to Supabase Storage with user folder structure
       const fileExt = screenshot.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
         .from('deposit-screenshots')
-        .upload(fileName, screenshot);
+        .upload(fileName, screenshot, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL (60 minute expiry)
+      const { data: { signedUrl }, error: urlError } = await supabase.storage
         .from('deposit-screenshots')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600);
+
+      if (urlError) throw urlError;
+
+      // Validate input before submission
+      const validatedData = depositSchema.parse({
+        amount: parseFloat(amount),
+        utrNumber,
+        screenshotUrl: signedUrl,
+      });
 
       // Create deposit request
       await createDeposit.mutateAsync({
         userId: user.id,
-        amount: parseFloat(amount),
-        utrNumber,
-        screenshotUrl: publicUrl,
+        amount: validatedData.amount,
+        utrNumber: validatedData.utrNumber,
+        screenshotUrl: validatedData.screenshotUrl,
       });
 
       // Reset form
@@ -80,9 +84,10 @@ export const DepositDialog = ({ open, onOpenChange }: DepositDialogProps) => {
       setScreenshot(null);
       onOpenChange(false);
     } catch (error: any) {
+      console.error("Deposit error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to submit deposit request",
         variant: "destructive",
       });
     } finally {

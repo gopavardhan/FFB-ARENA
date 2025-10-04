@@ -80,6 +80,35 @@ export type Database = {
         }
         Relationships: []
       }
+      tournament_credentials: {
+        Row: {
+          created_at: string | null
+          room_id: string | null
+          room_password: string | null
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          room_id?: string | null
+          room_password?: string | null
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string | null
+          room_id?: string | null
+          room_password?: string | null
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_credentials_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: true
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_registrations: {
         Row: {
           id: string
@@ -166,8 +195,6 @@ export type Database = {
           id: string
           name: string
           prize_distribution: Json
-          room_id: string | null
-          room_password: string | null
           start_date: string
           status: Database["public"]["Enums"]["tournament_status"]
           total_slots: number
@@ -183,8 +210,6 @@ export type Database = {
           id?: string
           name: string
           prize_distribution?: Json
-          room_id?: string | null
-          room_password?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["tournament_status"]
           total_slots: number
@@ -200,8 +225,6 @@ export type Database = {
           id?: string
           name?: string
           prize_distribution?: Json
-          room_id?: string | null
-          room_password?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["tournament_status"]
           total_slots?: number

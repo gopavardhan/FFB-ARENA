@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { tournamentSchema } from "@/lib/validation";
 
 const TournamentCreate = () => {
   const { user } = useAuth();
@@ -36,28 +37,55 @@ const TournamentCreate = () => {
 
     try {
       const prizeDistribution = {
-        1: parseFloat(formData.prizeFirst),
-        2: parseFloat(formData.prizeSecond) || 0,
-        3: parseFloat(formData.prizeThird) || 0,
+        "1": parseFloat(formData.prizeFirst),
+        "2": parseFloat(formData.prizeSecond) || 0,
+        "3": parseFloat(formData.prizeThird) || 0,
       };
 
-      const { error } = await supabase
+      // Validate input
+      const validatedData = tournamentSchema.parse({
+        name: formData.name,
+        entryFee: parseFloat(formData.entryFee),
+        totalSlots: parseInt(formData.totalSlots),
+        startDate: new Date(formData.startDate).toISOString(),
+        gameMode: formData.gameMode,
+        prizeDistribution,
+        roomId: formData.roomId || null,
+        roomPassword: formData.roomPassword || null,
+        tournamentRules: formData.tournamentRules || null,
+      });
+
+      // Create tournament
+      const { data: tournament, error: tournamentError } = await supabase
         .from("tournaments")
         .insert({
-          name: formData.name,
-          entry_fee: parseFloat(formData.entryFee),
-          total_slots: parseInt(formData.totalSlots),
-          start_date: new Date(formData.startDate).toISOString(),
-          game_mode: formData.gameMode,
-          prize_distribution: prizeDistribution,
-          room_id: formData.roomId || null,
-          room_password: formData.roomPassword || null,
-          tournament_rules: formData.tournamentRules || null,
+          name: validatedData.name,
+          entry_fee: validatedData.entryFee,
+          total_slots: validatedData.totalSlots,
+          start_date: validatedData.startDate,
+          game_mode: validatedData.gameMode,
+          prize_distribution: validatedData.prizeDistribution,
+          tournament_rules: validatedData.tournamentRules,
           created_by: user!.id,
           status: "upcoming",
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (tournamentError) throw tournamentError;
+
+      // Store credentials separately if provided
+      if (validatedData.roomId || validatedData.roomPassword) {
+        const { error: credentialsError } = await supabase
+          .from("tournament_credentials")
+          .insert({
+            tournament_id: tournament.id,
+            room_id: validatedData.roomId,
+            room_password: validatedData.roomPassword,
+          });
+
+        if (credentialsError) throw credentialsError;
+      }
 
       toast({
         title: "Success",
@@ -66,9 +94,10 @@ const TournamentCreate = () => {
 
       navigate("/admin/tournaments");
     } catch (error: any) {
+      console.error("Tournament creation error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to create tournament",
         variant: "destructive",
       });
     } finally {
