@@ -12,12 +12,17 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
+import { useRealtimeTournaments } from "@/hooks/useRealtimeTournaments";
 
 const Tournaments = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "upcoming" | "active" | "completed">("all");
+  
+  // Enable real-time subscriptions for tournament updates
+  useRealtimeTournaments();
+  
   const { data: tournaments, isLoading } = useTournaments(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );

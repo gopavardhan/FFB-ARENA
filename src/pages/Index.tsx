@@ -8,10 +8,24 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Wallet, TrendingUp, Plus, History, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRealtimeBalance } from "@/hooks/useRealtimeBalance";
+import { useRealtimeTournaments } from "@/hooks/useRealtimeTournaments";
+import { useRealtimeDepositsWithdrawals } from "@/hooks/useRealtimeDepositsWithdrawals";
+import { useUserBalance } from "@/hooks/useWallet";
+import { useTournaments } from "@/hooks/useTournaments";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
+
+  // Enable real-time subscriptions
+  useRealtimeBalance(user?.id);
+  useRealtimeTournaments();
+  useRealtimeDepositsWithdrawals(user?.id, userRole);
+
+  // Fetch live data
+  const { data: balance } = useUserBalance(user?.id || "");
+  const { data: tournaments } = useTournaments({ status: "upcoming" });
 
   // Mock data - will be replaced with real data from Supabase
   const recentActivities: Activity[] = [
@@ -79,13 +93,13 @@ const Index = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <StatCard
           title="Your Balance"
-          value="₹0"
+          value={`₹${balance?.amount?.toFixed(2) || "0.00"}`}
           icon={Wallet}
           iconColor="accent"
         />
         <StatCard
           title="Active Tournaments"
-          value="0"
+          value={tournaments?.length.toString() || "0"}
           icon={Trophy}
           iconColor="secondary"
         />

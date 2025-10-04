@@ -12,11 +12,18 @@ import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 import { DepositDialog } from "@/components/wallet/DepositDialog";
 import { WithdrawalDialog } from "@/components/wallet/WithdrawalDialog";
+import { useRealtimeBalance } from "@/hooks/useRealtimeBalance";
+import { useRealtimeDepositsWithdrawals } from "@/hooks/useRealtimeDepositsWithdrawals";
 
 const Wallet = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawalOpen, setWithdrawalOpen] = useState(false);
+  
+  // Enable real-time subscriptions
+  useRealtimeBalance(user?.id);
+  useRealtimeDepositsWithdrawals(user?.id, userRole);
+  
   const { data: balance, isLoading: balanceLoading } = useUserBalance(user?.id || "");
   const { data: transactions, isLoading: transactionsLoading } = useUserTransactions(user?.id || "");
   const { data: deposits } = useUserDeposits(user?.id || "");
