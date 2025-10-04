@@ -69,48 +69,20 @@ const WithdrawalApprovals = () => {
 
   const approveWithdrawalMutation = useMutation({
     mutationFn: async ({ withdrawalId, utr }: { withdrawalId: string; utr: string }) => {
-      const withdrawal = withdrawals?.find(w => w.id === withdrawalId);
-      if (!withdrawal) throw new Error("Withdrawal not found");
+      // Call backend function to approve withdrawal
+      const { data, error } = await supabase.rpc("approve_withdrawal", {
+        p_withdrawal_id: withdrawalId,
+        p_boss_id: user?.id,
+        p_payout_utr: utr,
+      });
 
-      // Get current balance
-      const { data: balanceData, error: balanceError } = await supabase
-        .from("user_balances")
-        .select("amount")
-        .eq("user_id", withdrawal.user_id)
-        .single();
+      if (error) throw error;
 
-      if (balanceError) throw balanceError;
-
-      const balanceBefore = balanceData.amount;
-      const balanceAfter = balanceBefore; // Already deducted when withdrawal was created
-
-      // Update withdrawal status
-      const { error: withdrawalError } = await supabase
-        .from("withdrawals")
-        .update({
-          status: "approved",
-          payout_utr: utr,
-          processed_at: new Date().toISOString(),
-          processed_by: user?.id,
-        })
-        .eq("id", withdrawalId);
-
-      if (withdrawalError) throw withdrawalError;
-
-      // Create transaction record
-      const { error: transactionError } = await supabase
-        .from("transactions")
-        .insert({
-          user_id: withdrawal.user_id,
-          type: "withdrawal",
-          amount: -withdrawal.amount,
-          balance_before: balanceBefore + withdrawal.amount,
-          balance_after: balanceAfter,
-          reference_id: withdrawalId,
-          description: `Withdrawal completed - UTR: ${utr}`,
-        });
-
-      if (transactionError) throw transactionError;
+      const result = data as { success: boolean; error?: string };
+      
+      if (!result.success) {
+        throw new Error(result.error || "Approval failed");
+      }
     },
     onSuccess: () => {
       toast({
@@ -132,56 +104,20 @@ const WithdrawalApprovals = () => {
 
   const cancelWithdrawalMutation = useMutation({
     mutationFn: async ({ withdrawalId, reason }: { withdrawalId: string; reason: string }) => {
-      const withdrawal = withdrawals?.find(w => w.id === withdrawalId);
-      if (!withdrawal) throw new Error("Withdrawal not found");
+      // Call backend function to cancel withdrawal with refund
+      const { data, error } = await supabase.rpc("cancel_withdrawal", {
+        p_withdrawal_id: withdrawalId,
+        p_boss_id: user?.id,
+        p_cancellation_reason: reason,
+      });
 
-      // Get current balance
-      const { data: balanceData, error: balanceError } = await supabase
-        .from("user_balances")
-        .select("amount")
-        .eq("user_id", withdrawal.user_id)
-        .single();
+      if (error) throw error;
 
-      if (balanceError) throw balanceError;
-
-      const balanceBefore = balanceData.amount;
-      const balanceAfter = balanceBefore + withdrawal.amount;
-
-      // Refund the amount
-      const { error: refundError } = await supabase
-        .from("user_balances")
-        .update({ amount: balanceAfter })
-        .eq("user_id", withdrawal.user_id);
-
-      if (refundError) throw refundError;
-
-      // Update withdrawal status
-      const { error: withdrawalError } = await supabase
-        .from("withdrawals")
-        .update({
-          status: "cancelled",
-          cancellation_reason: reason,
-          processed_at: new Date().toISOString(),
-          processed_by: user?.id,
-        })
-        .eq("id", withdrawalId);
-
-      if (withdrawalError) throw withdrawalError;
-
-      // Create transaction record
-      const { error: transactionError } = await supabase
-        .from("transactions")
-        .insert({
-          user_id: withdrawal.user_id,
-          type: "withdrawal_refund",
-          amount: withdrawal.amount,
-          balance_before: balanceBefore,
-          balance_after: balanceAfter,
-          reference_id: withdrawalId,
-          description: `Withdrawal cancelled and refunded - ${reason}`,
-        });
-
-      if (transactionError) throw transactionError;
+      const result = data as { success: boolean; error?: string };
+      
+      if (!result.success) {
+        throw new Error(result.error || "Cancellation failed");
+      }
     },
     onSuccess: () => {
       toast({

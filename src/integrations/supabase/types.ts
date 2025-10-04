@@ -115,6 +115,47 @@ export type Database = {
           },
         ]
       }
+      tournament_results: {
+        Row: {
+          created_at: string | null
+          id: string
+          kills: number | null
+          prize_amount: number | null
+          rank: number
+          tournament_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          kills?: number | null
+          prize_amount?: number | null
+          rank: number
+          tournament_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          kills?: number | null
+          prize_amount?: number | null
+          rank?: number
+          tournament_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_results_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournaments: {
         Row: {
           created_at: string
@@ -288,6 +329,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_deposit: {
+        Args: { p_boss_id: string; p_boss_notes?: string; p_deposit_id: string }
+        Returns: Json
+      }
+      approve_withdrawal: {
+        Args: {
+          p_boss_id: string
+          p_payout_utr: string
+          p_withdrawal_id: string
+        }
+        Returns: Json
+      }
+      cancel_withdrawal: {
+        Args: {
+          p_boss_id: string
+          p_cancellation_reason: string
+          p_withdrawal_id: string
+        }
+        Returns: Json
+      }
+      create_withdrawal_request: {
+        Args: { p_amount: number; p_upi_id: string; p_user_id: string }
+        Returns: Json
+      }
+      distribute_tournament_prizes: {
+        Args: { p_admin_id: string; p_tournament_id: string }
+        Returns: Json
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -301,6 +370,10 @@ export type Database = {
       }
       register_for_tournament: {
         Args: { p_tournament_id: string; p_user_id: string }
+        Returns: Json
+      }
+      reject_deposit: {
+        Args: { p_boss_id: string; p_boss_notes: string; p_deposit_id: string }
         Returns: Json
       }
     }

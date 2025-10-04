@@ -71,59 +71,29 @@ const DepositApprovals = () => {
       const deposit = deposits?.find(d => d.id === depositId);
       if (!deposit) throw new Error("Deposit not found");
 
-      // Update deposit status
-      const { error: depositError } = await supabase
-        .from("deposits")
-        .update({
-          status: "approved",
-          approved_at: new Date().toISOString(),
-          approved_by: user?.id,
-        })
-        .eq("id", depositId);
+      // Call backend function to approve deposit
+      const { data, error } = await supabase.rpc("approve_deposit", {
+        p_deposit_id: depositId,
+        p_boss_id: user?.id,
+        p_boss_notes: null,
+      });
 
-      if (depositError) throw depositError;
+      if (error) throw error;
 
-      // Get current balance
-      const { data: balanceData, error: balanceError } = await supabase
-        .from("user_balances")
-        .select("amount")
-        .eq("user_id", deposit.user_id)
-        .single();
+      const result = data as { success: boolean; error?: string; screenshot_url?: string };
+      
+      if (!result.success) {
+        throw new Error(result.error || "Approval failed");
+      }
 
-      if (balanceError) throw balanceError;
-
-      const balanceBefore = balanceData.amount;
-      const balanceAfter = balanceBefore + deposit.amount;
-
-      // Update user balance
-      const { error: updateBalanceError } = await supabase
-        .from("user_balances")
-        .update({ amount: balanceAfter })
-        .eq("user_id", deposit.user_id);
-
-      if (updateBalanceError) throw updateBalanceError;
-
-      // Create transaction record
-      const { error: transactionError } = await supabase
-        .from("transactions")
-        .insert({
-          user_id: deposit.user_id,
-          type: "deposit",
-          amount: deposit.amount,
-          balance_before: balanceBefore,
-          balance_after: balanceAfter,
-          reference_id: depositId,
-          description: `Deposit approved - UTR: ${deposit.utr_number}`,
-        });
-
-      if (transactionError) throw transactionError;
-
-      // Delete screenshot
-      const screenshotPath = deposit.screenshot_url.split('/').pop();
-      if (screenshotPath) {
-        await supabase.storage
-          .from("deposit-screenshots")
-          .remove([`${deposit.user_id}/${screenshotPath}`]);
+      // Delete screenshot from storage
+      if (result.screenshot_url) {
+        const screenshotPath = result.screenshot_url.split('/').pop();
+        if (screenshotPath) {
+          await supabase.storage
+            .from("deposit-screenshots")
+            .remove([`${deposit.user_id}/${screenshotPath}`]);
+        }
       }
     },
     onSuccess: () => {
@@ -147,24 +117,29 @@ const DepositApprovals = () => {
       const deposit = deposits?.find(d => d.id === depositId);
       if (!deposit) throw new Error("Deposit not found");
 
-      const { error } = await supabase
-        .from("deposits")
-        .update({
-          status: "rejected",
-          boss_notes: reason,
-          approved_by: user?.id,
-          approved_at: new Date().toISOString(),
-        })
-        .eq("id", depositId);
+      // Call backend function to reject deposit
+      const { data, error } = await supabase.rpc("reject_deposit", {
+        p_deposit_id: depositId,
+        p_boss_id: user?.id,
+        p_boss_notes: reason,
+      });
 
       if (error) throw error;
 
-      // Delete screenshot
-      const screenshotPath = deposit.screenshot_url.split('/').pop();
-      if (screenshotPath) {
-        await supabase.storage
-          .from("deposit-screenshots")
-          .remove([`${deposit.user_id}/${screenshotPath}`]);
+      const result = data as { success: boolean; error?: string; screenshot_url?: string };
+      
+      if (!result.success) {
+        throw new Error(result.error || "Rejection failed");
+      }
+
+      // Delete screenshot from storage
+      if (result.screenshot_url) {
+        const screenshotPath = result.screenshot_url.split('/').pop();
+        if (screenshotPath) {
+          await supabase.storage
+            .from("deposit-screenshots")
+            .remove([`${deposit.user_id}/${screenshotPath}`]);
+        }
       }
     },
     onSuccess: () => {

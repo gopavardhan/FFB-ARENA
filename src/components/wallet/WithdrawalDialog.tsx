@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCreateWithdrawal, useUserBalance } from "@/hooks/useWallet";
+import { useUserBalance } from "@/hooks/useWallet";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface WithdrawalDialogProps {
   open: boolean;
@@ -17,7 +19,8 @@ export const WithdrawalDialog = ({ open, onOpenChange }: WithdrawalDialogProps) 
   const { data: balance } = useUserBalance(user?.id || "");
   const [amount, setAmount] = useState("");
   const [upiId, setUpiId] = useState("");
-  const createWithdrawal = useCreateWithdrawal();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const withdrawalFee = 0; // Can be configured
   const finalAmount = parseFloat(amount) || 0;
@@ -53,15 +56,43 @@ export const WithdrawalDialog = ({ open, onOpenChange }: WithdrawalDialogProps) 
       return;
     }
 
-    await createWithdrawal.mutateAsync({
-      userId: user.id,
-      amount: finalAmount,
-      upiId,
-    });
+    setIsSubmitting(true);
+    try {
+      // Call backend function to create withdrawal with immediate balance deduction
+      const { data, error } = await supabase.rpc("create_withdrawal_request", {
+        p_user_id: user.id,
+        p_amount: finalAmount,
+        p_upi_id: upiId,
+      });
 
-    setAmount("");
-    setUpiId("");
-    onOpenChange(false);
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string };
+      
+      if (!result.success) {
+        throw new Error(result.error || "Withdrawal request failed");
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["user_balance"] });
+      queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
+      
+      toast({
+        title: "Success",
+        description: "Withdrawal request submitted. Amount has been deducted from your balance.",
+      });
+      
+      setAmount("");
+      setUpiId("");
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -135,9 +166,9 @@ export const WithdrawalDialog = ({ open, onOpenChange }: WithdrawalDialogProps) 
           <Button 
             type="submit" 
             className="w-full"
-            disabled={createWithdrawal.isPending || !balance || balance.amount < totalDeduction}
+            disabled={isSubmitting || !balance || balance.amount < totalDeduction}
           >
-            {createWithdrawal.isPending ? "Requesting..." : "Request Withdrawal"}
+            {isSubmitting ? "Requesting..." : "Request Withdrawal"}
           </Button>
         </form>
       </DialogContent>
