@@ -314,6 +314,7 @@ export type Database = {
         | "tournament_entry"
         | "tournament_win"
         | "refund"
+        | "withdrawal_refund"
       withdrawal_status: "pending" | "approved" | "cancelled"
     }
     CompositeTypes: {
@@ -451,6 +452,7 @@ export const Constants = {
         "tournament_entry",
         "tournament_win",
         "refund",
+        "withdrawal_refund",
       ],
       withdrawal_status: ["pending", "approved", "cancelled"],
     },

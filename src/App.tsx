@@ -14,6 +14,9 @@ import Leaderboard from "./pages/Leaderboard";
 import Profile from "./pages/Profile";
 import History from "./pages/History";
 import BossDashboard from "./pages/boss/BossDashboard";
+import AdminManagement from "./pages/boss/AdminManagement";
+import DepositApprovals from "./pages/boss/DepositApprovals";
+import WithdrawalApprovals from "./pages/boss/WithdrawalApprovals";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import TournamentCreate from "./pages/admin/TournamentCreate";
 import TournamentManagement from "./pages/admin/TournamentManagement";
@@ -42,6 +45,9 @@ const App = () => (
             
             {/* Boss Routes */}
             <Route path="/boss/dashboard" element={<ProtectedRoute allowedRoles={['boss']}><BossDashboard /></ProtectedRoute>} />
+            <Route path="/boss/admins" element={<ProtectedRoute allowedRoles={['boss']}><AdminManagement /></ProtectedRoute>} />
+            <Route path="/boss/deposits" element={<ProtectedRoute allowedRoles={['boss']}><DepositApprovals /></ProtectedRoute>} />
+            <Route path="/boss/withdrawals" element={<ProtectedRoute allowedRoles={['boss']}><WithdrawalApprovals /></ProtectedRoute>} />
             
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
