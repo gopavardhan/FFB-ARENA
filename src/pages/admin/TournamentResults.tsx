@@ -4,7 +4,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +11,7 @@ import { useTournament } from "@/hooks/useTournaments";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 import { Trophy, ArrowLeft } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Registration {
   id: string;
@@ -30,7 +30,7 @@ const TournamentResults = () => {
   const navigate = useNavigate();
   const { data: tournament, isLoading } = useTournament(id!);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [results, setResults] = useState<Record<string, { rank: number; kills: number; prize: number }>>({});
+  const [winners, setWinners] = useState<Record<number, string>>({});
 
   const { data: registrations, isLoading: loadingRegistrations } = useQuery({
     queryKey: ["tournament_registrations_full", id],
@@ -42,7 +42,6 @@ const TournamentResults = () => {
 
       if (regsError) throw regsError;
 
-      // Fetch profiles separately
       const userIds = regs.map(r => r.user_id);
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
@@ -51,7 +50,6 @@ const TournamentResults = () => {
 
       if (profilesError) throw profilesError;
 
-      // Merge data
       const merged = regs.map(reg => {
         const profile = profiles.find(p => p.id === reg.user_id);
         return {
@@ -68,35 +66,43 @@ const TournamentResults = () => {
     enabled: !!id,
   });
 
-  const handleResultChange = (userId: string, field: "rank" | "kills" | "prize", value: string) => {
-    setResults((prev) => ({
+  const prizeDistribution = tournament?.prize_distribution as Record<string, number> || {};
+  const positions = Object.keys(prizeDistribution).sort((a, b) => parseInt(a) - parseInt(b));
+
+  const handleWinnerChange = (position: number, userId: string) => {
+    setWinners(prev => ({
       ...prev,
-      [userId]: {
-        ...prev[userId],
-        rank: prev[userId]?.rank || 0,
-        kills: prev[userId]?.kills || 0,
-        prize: prev[userId]?.prize || 0,
-        [field]: parseInt(value) || 0,
-      },
+      [position]: userId
     }));
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Update results in database
-      const resultEntries = Object.entries(results).map(([userId, result]) => ({
-        tournament_id: id,
-        user_id: userId,
-        rank: result.rank,
-        kills: result.kills,
-        prize_amount: result.prize,
-      }));
+      // Validate all positions are filled
+      const missingPositions = positions.filter(pos => !winners[parseInt(pos)]);
+      if (missingPositions.length > 0) {
+        toast({
+          title: "Error",
+          description: `Please select winners for all positions: ${missingPositions.join(", ")}`,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
 
       // Delete existing results
       await supabase.from("tournament_results").delete().eq("tournament_id", id!);
 
-      // Insert new results
+      // Create results with prize amounts from prize distribution
+      const resultEntries = Object.entries(winners).map(([position, userId]) => ({
+        tournament_id: id,
+        user_id: userId,
+        rank: parseInt(position),
+        kills: 0,
+        prize_amount: prizeDistribution[position] || 0,
+      }));
+
       const { error: resultsError } = await supabase
         .from("tournament_results")
         .insert(resultEntries);
@@ -111,7 +117,7 @@ const TournamentResults = () => {
 
       if (tournamentError) throw tournamentError;
 
-      // Distribute prizes (this will update balances)
+      // Distribute prizes using the RPC function
       const { data: prizeData, error: prizeError } = await supabase.rpc(
         "distribute_tournament_prizes",
         {
@@ -167,64 +173,66 @@ const TournamentResults = () => {
         Back to Tournaments
       </Button>
 
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Prize Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {positions.map(pos => (
+              <div key={pos} className="p-4 bg-secondary/10 rounded-lg text-center">
+                <div className="text-sm text-muted-foreground">Position {pos}</div>
+                <div className="text-2xl font-bold text-secondary">₹{prizeDistribution[pos]}</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-secondary" />
-            Enter Results for Each Player
+            Select Winners
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {registrations?.map((reg) => (
-              <Card key={reg.id} className="p-4 bg-secondary/5">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-bold text-lg">{reg.profiles.full_name}</h3>
-                    <p className="text-sm text-muted-foreground">{reg.profiles.email}</p>
-                    <p className="text-sm text-secondary font-semibold mt-1">
-                      In-Game: {reg.in_game_name}
-                      {reg.friend_in_game_name && ` & ${reg.friend_in_game_name}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Slot #{reg.slot_number}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label>Rank</Label>
-                      <Input
-                        type="number"
-                        placeholder="Enter rank"
-                        value={results[reg.user_id]?.rank || ""}
-                        onChange={(e) => handleResultChange(reg.user_id, "rank", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Kills</Label>
-                      <Input
-                        type="number"
-                        placeholder="Enter kills"
-                        value={results[reg.user_id]?.kills || ""}
-                        onChange={(e) => handleResultChange(reg.user_id, "kills", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>Prize Amount (₹)</Label>
-                      <Input
-                        type="number"
-                        placeholder="Enter prize"
-                        value={results[reg.user_id]?.prize || ""}
-                        onChange={(e) => handleResultChange(reg.user_id, "prize", e.target.value)}
-                      />
-                    </div>
-                  </div>
+            {positions.map(pos => {
+              const position = parseInt(pos);
+              return (
+                <div key={position} className="p-4 border border-border rounded-lg">
+                  <Label className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-secondary" />
+                    Position {position} - ₹{prizeDistribution[pos]}
+                  </Label>
+                  <Select
+                    value={winners[position] || ""}
+                    onValueChange={(value) => handleWinnerChange(position, value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select winner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {registrations?.map((reg) => (
+                        <SelectItem key={reg.user_id} value={reg.user_id}>
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{reg.in_game_name || reg.profiles.full_name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              Slot #{reg.slot_number} • {reg.profiles.email}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </Card>
-            ))}
+              );
+            })}
 
             <Button
               onClick={handleSubmit}
-              disabled={isSubmitting || Object.keys(results).length === 0}
+              disabled={isSubmitting || Object.keys(winners).length === 0}
               className="w-full"
               size="lg"
             >

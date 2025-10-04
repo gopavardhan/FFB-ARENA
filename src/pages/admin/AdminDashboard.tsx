@@ -26,13 +26,6 @@ const AdminDashboard = () => {
       variant: "outline" as const,
     },
     {
-      label: "Update Results",
-      icon: BarChart,
-      onClick: () => navigate("/admin/results"),
-      variant: "outline" as const,
-      count: 1,
-    },
-    {
       label: "Send Announcement",
       icon: MessageSquare,
       onClick: () => navigate("/admin/announcements"),

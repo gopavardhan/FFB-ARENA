@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -5,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTournaments } from "@/hooks/useTournaments";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Users, Calendar, Plus, Edit, Trash2 } from "lucide-react";
+import { Trophy, Users, Calendar, Plus, Edit, Key } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
+import { RoomCredentials } from "./RoomCredentials";
 
 const TournamentManagement = () => {
   const navigate = useNavigate();
   const { data: tournaments, isLoading } = useTournaments();
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -90,6 +93,14 @@ const TournamentManagement = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  onClick={() => setSelectedTournamentId(tournament.id)}
+                >
+                  <Key className="w-4 h-4 mr-1" />
+                  Room Details
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
                   onClick={() => navigate(`/admin/tournaments/${tournament.id}/results`)}
                 >
                   <Edit className="w-4 h-4 mr-1" />
@@ -112,6 +123,12 @@ const TournamentManagement = () => {
           </Button>
         </Card>
       )}
+
+      <RoomCredentials
+        tournamentId={selectedTournamentId || ""}
+        open={!!selectedTournamentId}
+        onOpenChange={(open) => !open && setSelectedTournamentId(null)}
+      />
     </MainLayout>
   );
 };
