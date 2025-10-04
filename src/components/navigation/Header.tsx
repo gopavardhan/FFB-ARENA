@@ -4,6 +4,7 @@ import { useState } from "react";
 import { HamburgerMenu } from "./HamburgerMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import ffbArenaLogo from "@/assets/ffb-arena-logo.png";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,9 +16,11 @@ export const Header = () => {
         <div className="container flex items-center justify-between h-16 px-4">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-secondary to-accent rounded-lg flex items-center justify-center font-orbitron font-bold text-primary">
-              FF
-            </div>
+            <img 
+              src={ffbArenaLogo} 
+              alt="FFB ARENA" 
+              className="w-10 h-10 rounded-lg object-cover"
+            />
             <div className="hidden sm:block">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-orbitron font-bold text-gradient">FFB ARENA</h1>
