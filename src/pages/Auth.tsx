@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, EyeOff, Mail } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Eye, EyeOff, Mail, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { FcGoogle } from "react-icons/fc";
@@ -38,6 +39,7 @@ const Auth = () => {
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
@@ -201,7 +203,7 @@ const Auth = () => {
           title: "Email Sent",
           description: "Check your email for password reset instructions.",
         });
-        setShowForgotPassword(false);
+        setResetEmailSent(true);
         setResetEmail("");
       }
     } catch (error) {
@@ -366,6 +368,15 @@ const Auth = () => {
           <TabsContent value="login">
             {showForgotPassword ? (
               <div className="space-y-4">
+                {resetEmailSent && (
+                  <Alert className="border-secondary/20 bg-secondary/5">
+                    <AlertCircle className="h-4 w-4 text-secondary" />
+                    <AlertDescription className="text-sm">
+                      Password reset email sent! Please check your inbox. If you don't see it, check your spam or junk folder.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
                 <div className="space-y-2">
                   <Label htmlFor="reset-email">Email Address</Label>
                   <Input
@@ -385,20 +396,23 @@ const Auth = () => {
                     onClick={() => {
                       setShowForgotPassword(false);
                       setResetEmail("");
+                      setResetEmailSent(false);
                     }}
                     disabled={loading}
                   >
-                    Cancel
+                    {resetEmailSent ? "Back to Login" : "Cancel"}
                   </Button>
-                  <Button
-                    type="button"
-                    variant="premium"
-                    className="flex-1"
-                    onClick={handleForgotPassword}
-                    disabled={loading}
-                  >
-                    {loading ? "Sending..." : "Send Reset Link"}
-                  </Button>
+                  {!resetEmailSent && (
+                    <Button
+                      type="button"
+                      variant="premium"
+                      className="flex-1"
+                      onClick={handleForgotPassword}
+                      disabled={loading}
+                    >
+                      {loading ? "Sending..." : "Send Reset Link"}
+                    </Button>
+                  )}
                 </div>
               </div>
             ) : (
