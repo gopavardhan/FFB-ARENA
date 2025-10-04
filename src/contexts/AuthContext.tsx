@@ -64,6 +64,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setTimeout(async () => {
             const role = await fetchUserRole(currentSession.user.id);
             setUserRole(role);
+            
+            // Redirect based on role after OAuth sign-in
+            if (event === 'SIGNED_IN' && window.location.pathname === '/auth') {
+              switch (role) {
+                case "boss":
+                  navigate("/boss/dashboard");
+                  break;
+                case "admin":
+                  navigate("/admin/dashboard");
+                  break;
+                default:
+                  navigate("/");
+              }
+            }
           }, 0);
         } else {
           setUserRole(null);
