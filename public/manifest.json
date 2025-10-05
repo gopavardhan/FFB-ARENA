@@ -4,7 +4,6 @@
   "description": "Professional tournament management platform for Free Fire gaming",
   "start_url": "/",
   "scope": "/",
-  "id": "/",
   "lang": "en-US",
   "dir": "ltr",
   "display": "standalone",
@@ -23,6 +22,24 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-1024x1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -53,55 +70,8 @@
       "sizes": "720x1280",
       "type": "image/png"
     }
-  ]
-
-  ,
-  "related_applications": [
-    {
-      "platform": "play",
-      "id": "com.vardhan.ffbarena",
-      "url": "https://play.google.com/store/apps/details?id=com.vardhan.ffbarena"
-    }
-  ],
-  "prefer_related_applications": false,
-  "share_target": {
-    "action": "/api/share-target",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url",
-      "files": [
-        { "name": "files", "accept": ["image/*"] }
-      ]
-    }
-  },
-  "file_handlers": [
-    {
-      "action": "/api/open-file",
-      "name": "Open FFB file",
-      "accept": { "application/json": [".ffb.json"] }
-    }
-  ],
+    ],
   "iarc_rating_id": "IARC-000000-0",
-  "scope_extensions": ["https://api.ffbarena.vercel.app/"],
-  "widgets": [
-    {
-      "name": "FFB Scoreboard",
-      "short_name": "Scoreboard",
-      "url": "/widget/scoreboard",
-      "sizes": "300x200",
-      "icon": "/pwd.png"
-    }
-  ],
-  "edge_side_panel": {
-    "path": "/panel",
-    "title": "FFB Panel",
-    "icon": "/pwd2.png"
-  },
-  "launch_handler": {
-    "route_to": "navigate-existing-client"
-  },
-  "display_override": ["tabbed", "window-controls-overlay", "standalone"]
+  "id": "https://ffbarena.vercel.app/",
+  "display_override": ["standalone"]
 }

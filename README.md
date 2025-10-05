@@ -71,3 +71,15 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## PWA / Manifest changes
+
+I cleaned up `public/manifest.json` to remove experimental or non-standard fields that caused PWABuilder/MSIX packaging to fail (fields like `scope_extensions`, `widgets`, `edge_side_panel`, and `launch_handler`). I also generated additional PNG icon sizes required by app packaging tools.
+
+Files added/updated:
+- `public/manifest.json` (trimmed to standards-compliant fields)
+- `public/icon-144x144.png`, `public/icon-256x256.png`, `public/icon-1024x1024.png` (generated from `public/pwd2.png`)
+- `scripts/validate-manifest.js` (local manifest checker)
+- `scripts/generate-icons.js` (icon generator using Jimp)
+
+If you plan to re-run PWABuilder or package an MSIX, ensure the site is publicly reachable and try again; if there are packaging errors I can iterate further.
