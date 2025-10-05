@@ -7,10 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, Mail, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { FcGoogle } from "react-icons/fc";
+import ffbArenaLogo from "@/assets/ffb-arena-logo.jpg";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -29,7 +29,7 @@ const signupSchema = z.object({
 });
 
 const Auth = () => {
-  const { user, signIn, signUp, signInWithGoogle, resetPassword, updatePassword } = useAuth();
+  const { user, signIn, signUp, resetPassword, updatePassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
@@ -217,21 +217,6 @@ const Auth = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
-      const { error } = await signInWithGoogle();
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -299,9 +284,11 @@ const Auth = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md p-8 bg-card border-border">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-secondary to-accent rounded-xl flex items-center justify-center font-orbitron font-bold text-2xl text-primary mx-auto mb-4">
-              FF
-            </div>
+            <img
+              src={ffbArenaLogo}
+              alt="FFB ARENA"
+              className="w-20 h-20 rounded-xl object-cover mx-auto mb-4 shadow-lg"
+            />
             <h1 className="text-3xl font-orbitron font-bold text-gradient mb-2">Reset Password</h1>
             <p className="text-muted-foreground font-inter">Enter your new password</p>
           </div>
@@ -352,9 +339,11 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 bg-card border-border">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-secondary to-accent rounded-xl flex items-center justify-center font-orbitron font-bold text-2xl text-primary mx-auto mb-4">
-            FF
-          </div>
+          <img
+            src={ffbArenaLogo}
+            alt="FFB ARENA"
+            className="w-20 h-20 rounded-xl object-cover mx-auto mb-4 shadow-lg"
+          />
           <h1 className="text-3xl font-orbitron font-bold text-gradient mb-2">FFB ARENA</h1>
           <p className="text-muted-foreground font-inter">Your Premier Tournament Platform</p>
         </div>
@@ -473,26 +462,6 @@ const Auth = () => {
                     {loading ? "Logging in..." : "Login"}
                   </Button>
                 </form>
-
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-                  </div>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full shadow-sm hover:shadow-md transition-shadow"
-                  onClick={handleGoogleSignIn}
-                  disabled={loading}
-                >
-                  <FcGoogle className="w-5 h-5 mr-2" />
-                  Continue with Google
-                </Button>
               </>
             )}
           </TabsContent>

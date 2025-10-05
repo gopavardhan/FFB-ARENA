@@ -115,17 +115,17 @@ const Wallet = () => {
       {/* Tabs for Transactions, Deposits, Withdrawals */}
       <Tabs defaultValue="transactions" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="transactions">
-            <History className="w-4 h-4 mr-2" />
-            Transactions
+          <TabsTrigger value="transactions" className="text-xs sm:text-sm">
+            <History className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Transactions</span>
           </TabsTrigger>
-          <TabsTrigger value="deposits">
-            <Plus className="w-4 h-4 mr-2" />
-            Deposits
+          <TabsTrigger value="deposits" className="text-xs sm:text-sm">
+            <Plus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Deposits</span>
           </TabsTrigger>
-          <TabsTrigger value="withdrawals">
-            <Minus className="w-4 h-4 mr-2" />
-            Withdrawals
+          <TabsTrigger value="withdrawals" className="text-xs sm:text-sm">
+            <Minus className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Withdrawals</span>
           </TabsTrigger>
         </TabsList>
 
