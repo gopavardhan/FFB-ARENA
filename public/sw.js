@@ -90,3 +90,34 @@ self.addEventListener('notificationclick', (event) => {
     clients.openWindow(event.notification.data)
   );
 });
+
+// Background Sync event (one-off)
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'ffb-sync') {
+    event.waitUntil(
+      // Example: sync user data or pending requests
+      (async () => {
+        // Placeholder - implement real sync tasks here
+        console.log('Background sync triggered: ffb-sync');
+        return true;
+      })()
+    );
+  }
+});
+
+// Periodic Background Sync
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'ffb-periodic-sync') {
+    event.waitUntil((async () => {
+      // Placeholder: fetch latest feed or notifications
+      try {
+        const resp = await fetch('/api/refresh-cache');
+        if (resp && resp.ok) {
+          console.log('Periodic sync fetched updates');
+        }
+      } catch (err) {
+        console.error('Periodic sync failed', err);
+      }
+    })());
+  }
+});

@@ -27,6 +27,32 @@ export const registerServiceWorker = async () => {
   }
 };
 
+// Request periodic sync (if available) and a one-off background sync tag
+export const setupBackgroundSync = async () => {
+  if ('serviceWorker' in navigator && 'periodicSync' in (navigator as any)) {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      // Request periodic sync every 24 hours
+      await (registration as any).periodicSync.register('ffb-periodic-sync', {
+        minInterval: 24 * 60 * 60 * 1000,
+      });
+      console.log('Periodic background sync registered');
+    } catch (err) {
+      console.warn('Periodic sync registration failed', err);
+    }
+  }
+
+  if ('serviceWorker' in navigator && 'sync' in (navigator as any)) {
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      await (registration as any).sync.register('ffb-sync');
+      console.log('One-off background sync registered');
+    } catch (err) {
+      console.warn('Background sync registration failed', err);
+    }
+  }
+};
+
 export const unregisterServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     const registrations = await navigator.serviceWorker.getRegistrations();
