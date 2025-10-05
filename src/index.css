@@ -109,3 +109,24 @@ All colors MUST be HSL.
     background-clip: text;
   }
 }
+
+/* Prevent native overscroll and style pull-to-refresh indicator */
+body {
+  overscroll-behavior-y: contain;
+}
+
+#pull-to-refresh {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}

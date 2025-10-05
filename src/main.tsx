@@ -36,10 +36,18 @@ const setupPullToRefresh = () => {
     }
   }, { passive: true });
 
+  // Use passive: false so we can call preventDefault() and stop the native pull-to-refresh
   document.addEventListener('touchmove', (e) => {
     if (!pulling) return;
     const currentY = e.touches[0].pageY;
     const diff = currentY - startY;
+
+    // If user is pulling down, prevent native overscroll to allow our indicator
+    if (diff > 0 && window.scrollY === 0) {
+      // Prevent the browser's native pull-to-refresh
+      e.preventDefault();
+    }
+
     if (diff > 10) {
       // show indicator
       indicator.style.display = 'flex';
@@ -50,7 +58,7 @@ const setupPullToRefresh = () => {
         indicator.innerText = 'Pull to refresh';
       }
     }
-  }, { passive: true });
+  }, { passive: false });
 
   document.addEventListener('touchend', (e) => {
     if (!pulling) return;

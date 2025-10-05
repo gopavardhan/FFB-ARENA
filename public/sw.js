@@ -3,6 +3,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/offline.html',
   '/pwd.png',
   '/pwd2.png',
   '/favicon.ico'
@@ -41,18 +42,38 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => response)
-        .catch(() => caches.match('/index.html'))
+        .catch(async () => {
+          // Try cached index first, then offline page
+          const cachedIndex = await caches.match('/index.html');
+          if (cachedIndex) return cachedIndex;
+          return caches.match('/offline.html');
+        })
+    );
+    return;
+  }
+  // Network-first for API requests
+  if (request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((resp) => {
+          // cache GET responses
+          if (request.method === 'GET' && resp && resp.ok) {
+            const clone = resp.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return resp;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
 
-  // For other requests, try cache first, then network, falling back to cache
+  // For other requests, cache-first then network, fallback to offline page
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
       return fetch(request)
         .then((networkResp) => {
-          // Cache certain asset types
           const contentType = networkResp.headers.get('content-type') || '';
           if (networkResp && (contentType.includes('image') || contentType.includes('javascript') || contentType.includes('css') || contentType.includes('json'))) {
             const respClone = networkResp.clone();
@@ -60,7 +81,7 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResp;
         })
-        .catch(() => caches.match('/index.html'));
+        .catch(() => caches.match('/offline.html'));
     })
   );
 });
