@@ -8,7 +8,6 @@
   "lang": "en-US",
   "dir": "ltr",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#1a1a1a",
   "theme_color": "#FFD700",
   "orientation": "portrait",
@@ -45,9 +44,64 @@
   "categories": ["gaming", "sports", "esports"],
   "screenshots": [
     {
-      "src": "/placeholder.svg",
-      "sizes": "540x720",
-      "type": "image/svg+xml"
+      "src": "/screenshots/wide-1280x720.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    },
+    {
+      "src": "/screenshots/narrow-720x1280.png",
+      "sizes": "720x1280",
+      "type": "image/png"
     }
   ]
+
+  ,
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.vardhan.ffbarena",
+      "url": "https://play.google.com/store/apps/details?id=com.vardhan.ffbarena"
+    }
+  ],
+  "prefer_related_applications": false,
+  "share_target": {
+    "action": "/api/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        { "name": "files", "accept": ["image/*"] }
+      ]
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "/api/open-file",
+      "name": "Open FFB file",
+      "accept": { "application/json": [".ffb.json"] }
+    }
+  ],
+  "iarc_rating_id": "IARC-000000-0",
+  "scope_extensions": ["https://api.ffbarena.vercel.app/"],
+  "widgets": [
+    {
+      "name": "FFB Scoreboard",
+      "short_name": "Scoreboard",
+      "url": "/widget/scoreboard",
+      "sizes": "300x200",
+      "icon": "/pwd.png"
+    }
+  ],
+  "edge_side_panel": {
+    "path": "/panel",
+    "title": "FFB Panel",
+    "icon": "/pwd2.png"
+  },
+  "launch_handler": {
+    "route_to": "navigate-existing-client"
+  },
+  "display_override": ["tabbed", "window-controls-overlay", "standalone"]
 }
