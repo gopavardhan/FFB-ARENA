@@ -27,6 +27,7 @@ export interface Tournament {
   room_id?: string;
   room_password?: string;
   game_mode?: string;
+  tournament_type?: string;
   tournament_rules?: string;
   created_by: string;
   created_at: string;

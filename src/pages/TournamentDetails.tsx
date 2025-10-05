@@ -28,6 +28,10 @@ const TournamentDetails = () => {
   const [showRegisterDialog, setShowRegisterDialog] = useState(false);
   const [inGameName, setInGameName] = useState("");
   const [friendInGameName, setFriendInGameName] = useState("");
+  // For squad mode, allow multiple partner names
+  const [squadPartner1, setSquadPartner1] = useState("");
+  const [squadPartner2, setSquadPartner2] = useState("");
+  const [squadPartner3, setSquadPartner3] = useState("");
 
   const isRegistered = userRegistrations?.some((reg) => reg.tournament_id === id);
   const myRegistration = userRegistrations?.find((reg) => reg.tournament_id === id);
@@ -75,11 +79,23 @@ const TournamentDetails = () => {
       return;
     }
 
+    // Prepare friendInGameName depending on game mode
+    let friendPayload: string | undefined | null = null;
+    const mode = tournament?.game_mode || "Squad";
+    if (mode === "Duo") {
+      friendPayload = friendInGameName.trim() || null;
+    } else if (mode === "Squad") {
+      const partners = [squadPartner1.trim(), squadPartner2.trim(), squadPartner3.trim()].filter(Boolean);
+      friendPayload = partners.length > 0 ? JSON.stringify(partners) : null;
+    } else {
+      friendPayload = null;
+    }
+
     registerMutation.mutate({
       tournamentId: id!,
       userId: user.id,
       inGameName: inGameName.trim(),
-      friendInGameName: friendInGameName.trim() || undefined,
+      friendInGameName: friendPayload,
     }, {
       onSuccess: (data) => {
         toast({
@@ -181,6 +197,15 @@ const TournamentDetails = () => {
                   <p className="font-semibold">{tournament.game_mode || "Squad"}</p>
                 </div>
               </div>
+              {tournament.tournament_type && (
+                <div className="flex items-center gap-3">
+                  <Trophy className="w-5 h-5 text-secondary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tournament Type</p>
+                    <p className="font-semibold">{tournament.tournament_type}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {myRegistration && (
@@ -188,9 +213,21 @@ const TournamentDetails = () => {
                 <h4 className="font-semibold mb-2">Your Registration Details</h4>
                 <div className="space-y-1 text-sm">
                   <p>In-Game Name: <span className="font-bold text-secondary">{myRegistration.in_game_name}</span></p>
-                  {myRegistration.friend_in_game_name && (
-                    <p>Friend's Name: <span className="font-bold text-secondary">{myRegistration.friend_in_game_name}</span></p>
-                  )}
+                  {myRegistration.friend_in_game_name && (() => {
+                    let parsed: string[] | null = null;
+                    try {
+                      const p = JSON.parse(myRegistration.friend_in_game_name);
+                      if (Array.isArray(p)) parsed = p;
+                    } catch (err) {
+                      parsed = null;
+                    }
+
+                    if (parsed) {
+                      return <p>Partners: <span className="font-bold text-secondary">{parsed.join(", ")}</span></p>;
+                    }
+
+                    return <p>Friend's Name: <span className="font-bold text-secondary">{myRegistration.friend_in_game_name}</span></p>;
+                  })()}
                   <p>Slot Number: <span className="font-bold text-secondary">#{myRegistration.slot_number}</span></p>
                 </div>
               </div>
@@ -304,16 +341,39 @@ const TournamentDetails = () => {
                 maxLength={50}
               />
             </div>
-            <div>
-              <Label htmlFor="friendInGameName">Friend's In-Game Name (Optional)</Label>
-              <Input
-                id="friendInGameName"
-                value={friendInGameName}
-                onChange={(e) => setFriendInGameName(e.target.value)}
-                placeholder="Enter your friend's name (if duo/squad)"
-                maxLength={50}
-              />
-            </div>
+            {tournament?.game_mode === "Duo" && (
+              <div>
+                <Label htmlFor="friendInGameName">Partner's In-Game Name *</Label>
+                <Input
+                  id="friendInGameName"
+                  value={friendInGameName}
+                  onChange={(e) => setFriendInGameName(e.target.value)}
+                  placeholder="Enter your partner's in-game name"
+                  maxLength={50}
+                />
+              </div>
+            )}
+
+            {tournament?.game_mode === "Squad" && (
+              <div className="space-y-2">
+                <Label>Squad Partners (Optional, up to 3)</Label>
+                <Input
+                  placeholder="Partner 1 in-game name"
+                  value={squadPartner1}
+                  onChange={(e) => setSquadPartner1(e.target.value)}
+                />
+                <Input
+                  placeholder="Partner 2 in-game name"
+                  value={squadPartner2}
+                  onChange={(e) => setSquadPartner2(e.target.value)}
+                />
+                <Input
+                  placeholder="Partner 3 in-game name"
+                  value={squadPartner3}
+                  onChange={(e) => setSquadPartner3(e.target.value)}
+                />
+              </div>
+            )}
             <div className="text-sm text-muted-foreground">
               Entry Fee: <span className="font-bold text-secondary">₹{tournament.entry_fee}</span>
             </div>

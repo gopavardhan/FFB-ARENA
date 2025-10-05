@@ -27,6 +27,9 @@ export const tournamentSchema = z.object({
   gameMode: z.enum(["Solo", "Duo", "Squad"], { 
     errorMap: () => ({ message: "Invalid game mode" }) 
   }),
+  tournamentType: z.enum(["BR", "CS", "LoneWolf"], {
+    errorMap: () => ({ message: "Invalid tournament type" })
+  }),
   prizeDistribution: z.record(z.string(), z.number().nonnegative()),
   roomId: z.string().max(50).optional().nullable(),
   roomPassword: z.string().max(50).optional().nullable(),

@@ -66,6 +66,23 @@ const TournamentResults = () => {
     enabled: !!id,
   });
 
+  // Fetch existing result (rank 1) to ensure winner is declared only once
+  const { data: existingResult, isLoading: loadingExistingResult } = useQuery({
+    queryKey: ["tournament_results", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournament_results")
+        .select("*")
+        .eq("tournament_id", id!)
+        .eq("rank", 1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data ?? null;
+    },
+    enabled: !!id,
+  });
+
   const prizeDistribution = tournament?.prize_distribution as Record<string, number> || {};
   const winnerPrize = prizeDistribution["1"] || 0;
 
@@ -81,10 +98,27 @@ const TournamentResults = () => {
 
     setIsSubmitting(true);
     try {
-      // Delete existing results
-      await supabase.from("tournament_results").delete().eq("tournament_id", id!);
+      // Prevent posting a winner if one already exists
+      const { data: checkData, error: checkError } = await supabase
+        .from("tournament_results")
+        .select("*")
+        .eq("tournament_id", id!)
+        .eq("rank", 1)
+        .maybeSingle();
 
-      // Create result for winner
+      if (checkError) throw checkError;
+
+      if (checkData) {
+        toast({
+          title: "Winner Already Declared",
+          description: "A winner has already been declared for this tournament.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Create result for winner (final)
       const { error: resultsError } = await supabase
         .from("tournament_results")
         .insert({
@@ -126,10 +160,11 @@ const TournamentResults = () => {
       });
 
       navigate("/admin/tournaments");
-    } catch (error: any) {
+    } catch (error) {
+      const message = (error instanceof Error) ? error.message : String(error);
       toast({
         title: "Error",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -178,53 +213,85 @@ const TournamentResults = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-secondary" />
-            Select the Winner
+            {existingResult ? "Winner Declared" : "Select the Winner"}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div>
-              <Label className="text-lg font-semibold mb-3 block">
-                Choose the tournament winner
-              </Label>
-              <Select
-                value={winnerId}
-                onValueChange={setWinnerId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select winner from participants" />
-                </SelectTrigger>
-                <SelectContent>
-                  {registrations?.map((reg) => (
-                    <SelectItem key={reg.user_id} value={reg.user_id}>
-                      <div className="flex flex-col py-2">
-                        <span className="font-semibold text-base">
-                          {reg.in_game_name || reg.profiles.full_name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          Slot #{reg.slot_number} • {reg.profiles.email}
-                        </span>
-                        {reg.friend_in_game_name && (
-                          <span className="text-xs text-muted-foreground">
-                            Partner: {reg.friend_in_game_name}
-                          </span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {existingResult ? (
+              <div className="space-y-3">
+                <div className="p-4 bg-accent/5 rounded-lg">
+                  <h4 className="font-semibold">Declared Winner</h4>
+                  <p className="text-sm">User ID: <span className="font-mono">{existingResult.user_id}</span></p>
+                </div>
 
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting || !winnerId}
-              className="w-full"
-              size="lg"
-              variant="premium"
-            >
-              {isSubmitting ? "Declaring Winner..." : "Declare Winner & Distribute Prize"}
-            </Button>
+                <Button variant="outline" className="w-full" disabled>
+                  Winner Declared
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Label className="text-lg font-semibold mb-3 block">
+                    Choose the tournament winner
+                  </Label>
+                  <Select
+                    value={winnerId}
+                    onValueChange={setWinnerId}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select winner from participants" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {registrations?.map((reg) => {
+                        // friend_in_game_name may be a JSON array string for squads or plain string for duo
+                        let partnersDisplay: string | null = null;
+                        if (reg.friend_in_game_name) {
+                          try {
+                            const parsed = JSON.parse(reg.friend_in_game_name);
+                            if (Array.isArray(parsed)) {
+                              partnersDisplay = parsed.join(", ");
+                            } else {
+                              partnersDisplay = String(parsed);
+                            }
+                          } catch {
+                            partnersDisplay = String(reg.friend_in_game_name);
+                          }
+                        }
+
+                        return (
+                          <SelectItem key={reg.user_id} value={reg.user_id}>
+                            <div className="flex flex-col py-2">
+                              <span className="font-semibold text-base">
+                                {reg.in_game_name || reg.profiles.full_name}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                Slot #{reg.slot_number} • {reg.profiles.email}
+                              </span>
+                              {partnersDisplay && (
+                                <span className="text-xs text-muted-foreground">
+                                  Partner(s): {partnersDisplay}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !winnerId}
+                  className="w-full"
+                  size="lg"
+                  variant="premium"
+                >
+                  {isSubmitting ? "Declaring Winner..." : "Declare Winner & Distribute Prize"}
+                </Button>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

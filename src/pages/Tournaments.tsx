@@ -102,7 +102,12 @@ const Tournaments = () => {
                     <Trophy className="w-5 h-5 text-secondary" />
                   </div>
                   <div>
-                    <h3 className="font-orbitron font-bold">{tournament.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-orbitron font-bold">{tournament.name}</h3>
+                      {tournament.tournament_type && (
+                        <Badge className="text-xs px-2 py-1">{tournament.tournament_type}</Badge>
+                      )}
+                    </div>
                     <Badge className={getStatusColor(tournament.status)}>
                       {tournament.status}
                     </Badge>

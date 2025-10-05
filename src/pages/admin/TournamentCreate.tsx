@@ -23,6 +23,7 @@ const TournamentCreate = () => {
     totalSlots: "",
     startDate: "",
     gameMode: "Squad",
+    tournamentType: "BR",
     prizeAmount: "",
     roomId: "",
     roomPassword: "",
@@ -45,6 +46,7 @@ const TournamentCreate = () => {
         totalSlots: parseInt(formData.totalSlots),
         startDate: new Date(formData.startDate).toISOString(),
         gameMode: formData.gameMode,
+        tournamentType: formData.tournamentType,
         prizeDistribution,
         roomId: formData.roomId || null,
         roomPassword: formData.roomPassword || null,
@@ -60,6 +62,7 @@ const TournamentCreate = () => {
           total_slots: validatedData.totalSlots,
           start_date: validatedData.startDate,
           game_mode: validatedData.gameMode,
+            tournament_type: validatedData.tournamentType,
           prize_distribution: validatedData.prizeDistribution,
           tournament_rules: validatedData.tournamentRules,
           created_by: user!.id,
@@ -137,6 +140,20 @@ const TournamentCreate = () => {
                   <SelectItem value="Solo">Solo</SelectItem>
                   <SelectItem value="Duo">Duo</SelectItem>
                   <SelectItem value="Squad">Squad</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tournamentType">Tournament Type *</Label>
+              <Select value={formData.tournamentType} onValueChange={(value) => handleChange("tournamentType", value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BR">BR</SelectItem>
+                  <SelectItem value="CS">CS</SelectItem>
+                  <SelectItem value="LoneWolf">Lone Wolf</SelectItem>
                 </SelectContent>
               </Select>
             </div>
