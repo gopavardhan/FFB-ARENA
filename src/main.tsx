@@ -3,23 +3,69 @@ import App from "./App.tsx";
 import "./index.css";
 import { registerServiceWorker } from "./utils/pwa";
 
-// Prevent pull-to-refresh on mobile
-const preventPullToRefresh = () => {
+// Pull-to-refresh implementation for mobile
+const setupPullToRefresh = () => {
   let startY = 0;
+  let pulling = false;
+  const threshold = 80; // pixels to trigger refresh
+
+  // Create indicator element
+  const indicator = document.createElement('div');
+  indicator.id = 'ptr-indicator';
+  Object.assign(indicator.style, {
+    position: 'fixed',
+    top: '8px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: '9999',
+    padding: '8px 12px',
+    background: 'rgba(0,0,0,0.7)',
+    color: '#fff',
+    borderRadius: '20px',
+    fontSize: '14px',
+    display: 'none',
+    alignItems: 'center',
+  });
+  indicator.innerText = 'Release to refresh';
+  document.body.appendChild(indicator);
+
   document.addEventListener('touchstart', (e) => {
-    startY = e.touches[0].pageY;
+    if (window.scrollY === 0) {
+      startY = e.touches[0].pageY;
+      pulling = true;
+    }
   }, { passive: true });
 
   document.addEventListener('touchmove', (e) => {
-    const y = e.touches[0].pageY;
-    // Only prevent if scrolling down and at the top of the page
-    if (y > startY && window.scrollY === 0) {
-      e.preventDefault();
+    if (!pulling) return;
+    const currentY = e.touches[0].pageY;
+    const diff = currentY - startY;
+    if (diff > 10) {
+      // show indicator
+      indicator.style.display = 'flex';
+      indicator.style.opacity = `${Math.min(1, diff / threshold)}`;
+      if (diff > threshold) {
+        indicator.innerText = 'Release to refresh';
+      } else {
+        indicator.innerText = 'Pull to refresh';
+      }
     }
-  }, { passive: false });
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    if (!pulling) return;
+    pulling = false;
+    const endY = e.changedTouches[0].pageY;
+    const diff = endY - startY;
+    indicator.style.display = 'none';
+    if (diff > threshold) {
+      // trigger refresh - soft reload
+      window.location.reload();
+    }
+  }, { passive: true });
 };
 
-preventPullToRefresh();
+setupPullToRefresh();
 
 // Register service worker for PWA functionality
 registerServiceWorker();

@@ -3,6 +3,9 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/pwd.png',
+  '/pwd2.png',
+  '/favicon.ico'
 ];
 
 // Install event - cache essential resources
@@ -31,20 +34,34 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  // Navigation requests -> return cached index.html for SPA fallback
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => response)
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // For other requests, try cache first, then network, falling back to cache
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Clone the response before caching
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME)
-          .then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request);
-      })
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+      return fetch(request)
+        .then((networkResp) => {
+          // Cache certain asset types
+          const contentType = networkResp.headers.get('content-type') || '';
+          if (networkResp && (contentType.includes('image') || contentType.includes('javascript') || contentType.includes('css') || contentType.includes('json'))) {
+            const respClone = networkResp.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, respClone));
+          }
+          return networkResp;
+        })
+        .catch(() => caches.match('/index.html'));
+    })
   );
 });
 

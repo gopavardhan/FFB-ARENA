@@ -3,6 +3,7 @@
   "short_name": "FFB ARENA",
   "description": "Professional tournament management platform for Free Fire gaming",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#FFD700",
@@ -19,6 +20,22 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open FFB ARENA",
+      "short_name": "Open",
+      "description": "Open FFB ARENA dashboard",
+      "url": "/",
+      "icons": [{ "src": "/pwd.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tournaments",
+      "short_name": "Tournaments",
+      "description": "View tournaments",
+      "url": "/tournaments",
+      "icons": [{ "src": "/pwd2.png", "sizes": "512x512" }]
     }
   ],
   "categories": ["gaming", "sports", "esports"],
