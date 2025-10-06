@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAdminTournaments, useDeleteTournament } from "@/hooks/useTournaments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Users, Calendar, Plus, Edit, Key, Trash2 } from "lucide-react";
+import { Trophy, Users, Calendar, Plus, CreditCard as Edit, Key, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 import { RoomCredentials } from "./RoomCredentials";
