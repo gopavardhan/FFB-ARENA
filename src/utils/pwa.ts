@@ -6,18 +6,42 @@ export const registerServiceWorker = async () => {
       const registration = await navigator.serviceWorker.register('/sw.js');
       console.log('Service Worker registered:', registration);
 
+      // Check for updates every 60 seconds
+      setInterval(() => {
+        registration.update();
+      }, 60000);
+
       // Check for updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New service worker available
-              console.log('New service worker available');
-              // You can show a notification to the user here
+              // New service worker available - force reload to activate it
+              console.log('🔄 New service worker available - reloading to activate');
+              
+              // Show user-friendly notification
+              if (confirm('A new version is available with important updates. Click OK to refresh and apply the update.')) {
+                // Skip waiting and reload
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+              } else {
+                // Auto-reload after 5 seconds if user doesn't respond
+                setTimeout(() => {
+                  console.log('Auto-reloading to activate new service worker');
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  window.location.reload();
+                }, 5000);
+              }
             }
           });
         }
+      });
+
+      // Listen for controller change (new SW activated)
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('🎉 New service worker activated - reloading page');
+        window.location.reload();
       });
 
       return registration;

@@ -27,5 +27,12 @@ export const useBossCounts = () => {
         totalPending: (depositsCount || 0) + (withdrawalsCount || 0),
       };
     },
+    // Enable real-time updates for boss counts (very frequent for dashboard)
+    refetchInterval: 3000, // Refetch every 3 seconds
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    staleTime: 1000, // Consider data stale after 1 second
   });
 };

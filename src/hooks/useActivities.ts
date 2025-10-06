@@ -59,6 +59,13 @@ export const usePlayerActivities = (userId: string | undefined) => {
       return activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 10);
     },
     enabled: !!userId,
+    // Enable real-time updates for activity feed
+    refetchInterval: 20000, // Refetch every 20 seconds (less frequent for activity feed)
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    staleTime: 15000, // Consider data stale after 15 seconds
   });
 };
 

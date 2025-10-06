@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ffb-arena-v1';
+const CACHE_NAME = 'ffb-arena-v2-no-api-cache';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -18,18 +18,31 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate event - clean up old caches
+// Listen for skip waiting message
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Activate event - clean up old caches and force immediate takeover
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
+      // Delete ALL old caches, including API caches
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      // Force immediate takeover of all clients
+      console.log('New service worker activated and taking control');
+      return self.clients.claim();
+    })
   );
 });
 
@@ -51,19 +64,21 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-  // Network-first for API requests
-  if (request.url.includes('/api/')) {
+  // Network-first for API requests - NEVER cache Supabase requests
+  if (request.url.includes('/api/') || request.url.includes('supabase.co')) {
     event.respondWith(
       fetch(request)
         .then((resp) => {
-          // cache GET responses
-          if (request.method === 'GET' && resp && resp.ok) {
-            const clone = resp.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
+          // DO NOT cache Supabase API responses for real-time data
           return resp;
         })
-        .catch(() => caches.match(request))
+        .catch(() => {
+          // Only fallback to cache for non-Supabase requests
+          if (!request.url.includes('supabase.co')) {
+            return caches.match(request);
+          }
+          throw new Error('Network error and no cache available');
+        })
     );
     return;
   }

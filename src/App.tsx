@@ -31,7 +31,21 @@ import TermsConditions from "./pages/player/TermsConditions";
 import PrivacyPolicy from "./pages/player/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Enable real-time behavior
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      // Keep data fresh for real-time updates
+      staleTime: 0,
+      // Retry failed queries
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+  },
+});
 
 const App = () => (
   <ErrorBoundary>
