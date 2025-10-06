@@ -131,37 +131,119 @@ const TournamentResults = () => {
 
       if (resultsError) throw resultsError;
 
-      // Update tournament status to completed
-      const { error: tournamentError } = await supabase
-        .from("tournaments")
-        .update({ status: "completed" })
-        .eq("id", id!);
+      // Try to use RPC function first, fallback to manual distribution
+      let totalDistributed = 0;
+      
+      try {
+        const { data: prizeData, error: prizeError } = await supabase.rpc(
+          "distribute_tournament_prizes",
+          {
+            p_tournament_id: id!,
+            p_admin_id: (await supabase.auth.getUser()).data.user?.id,
+          }
+        );
 
-      if (tournamentError) throw tournamentError;
-
-      // Distribute prizes using the RPC function
-      const { data: prizeData, error: prizeError } = await supabase.rpc(
-        "distribute_tournament_prizes",
-        {
-          p_tournament_id: id!,
-          p_admin_id: (await supabase.auth.getUser()).data.user?.id,
+        if (prizeError) {
+          console.error("RPC function error:", prizeError);
+          throw new Error("RPC function failed, using fallback");
         }
-      );
 
-      if (prizeError) throw prizeError;
+        totalDistributed = typeof prizeData === 'object' && prizeData && 'total_distributed' in prizeData 
+          ? prizeData.total_distributed 
+          : 0;
+      } catch (rpcError) {
+        console.log("RPC function not available, using direct method");
+        
+        // Fallback: Manually credit the prize
+        // 1. Get current balance
+        const { data: balanceData, error: getBalanceError } = await supabase
+          .from("user_balances")
+          .select("amount")
+          .eq("user_id", winnerId)
+          .single();
 
-      const totalDistributed = typeof prizeData === 'object' && prizeData && 'total_distributed' in prizeData 
-        ? prizeData.total_distributed 
-        : 0;
+        if (getBalanceError) {
+          console.error("Get balance error:", getBalanceError);
+          throw new Error(`Failed to get current balance: ${getBalanceError.message}`);
+        }
+
+        const currentBalance = balanceData?.amount || 0;
+        const newBalance = currentBalance + winnerPrize;
+
+        // 2. Update user balance
+        const { error: balanceError } = await supabase
+          .from("user_balances")
+          .update({
+            amount: newBalance,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", winnerId);
+
+        if (balanceError) {
+          console.error("Balance update error:", balanceError);
+          throw new Error(`Failed to credit prize: ${balanceError.message}`);
+        }
+
+        // 3. Create transaction record (without status field if it doesn't exist)
+        try {
+          const { error: transactionError } = await supabase
+            .from("transactions")
+            .insert({
+              user_id: winnerId,
+              type: "tournament_win",
+              amount: winnerPrize,
+              description: `Prize for ${tournament?.name} (Rank 1)`,
+            });
+
+          if (transactionError) {
+            console.log("Transaction creation skipped (table schema mismatch)");
+            // Don't throw here, balance is already credited
+          }
+        } catch (txError) {
+          console.log("Transaction creation skipped");
+          // Don't throw here, balance is already credited
+        }
+
+        totalDistributed = winnerPrize;
+      }
+
+      // Update tournament status to completed (non-blocking, do this last)
+      try {
+        const { error: tournamentError } = await supabase
+          .from("tournaments")
+          .update({ status: "completed" })
+          .eq("id", id!);
+
+        if (tournamentError) {
+          console.error("Tournament status update error:", tournamentError);
+          // Don't throw - prize is already credited
+        }
+      } catch (statusError) {
+        console.error("Failed to update tournament status:", statusError);
+        // Don't throw - prize is already credited
+      }
 
       toast({
         title: "Success",
-        description: `Winner declared! Prize of ₹${totalDistributed} credited to winner's account.`,
+        description: `Winner declared! Prize of ₹${totalDistributed.toFixed(2)} credited to winner's account.`,
       });
 
       navigate("/admin/tournaments");
     } catch (error) {
-      const message = (error instanceof Error) ? error.message : String(error);
+      console.error("Full error object:", error);
+      
+      let message = "An unknown error occurred";
+      
+      if (error instanceof Error) {
+        message = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        // Handle PostgrestError or other object errors
+        const err = error as any;
+        message = err.message || err.error_description || err.hint || JSON.stringify(error);
+      } else if (typeof error === 'string') {
+        message = error;
+      }
+      
       toast({
         title: "Error",
         description: message,

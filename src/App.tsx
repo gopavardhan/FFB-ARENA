@@ -30,6 +30,11 @@ import Support from "./pages/player/Support";
 import TermsConditions from "./pages/player/TermsConditions";
 import PrivacyPolicy from "./pages/player/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
+import Statistics from "./pages/Statistics";
+import Achievements from "./pages/Achievements";
+import Teams from "./pages/Teams";
+import TeamDetails from "./pages/TeamDetails";
+import BracketView from "./pages/BracketView";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,6 +75,13 @@ const App = () => (
             <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
             <Route path="/terms" element={<ProtectedRoute><TermsConditions /></ProtectedRoute>} />
             <Route path="/privacy" element={<ProtectedRoute><PrivacyPolicy /></ProtectedRoute>} />
+            
+            {/* New Feature Routes */}
+            <Route path="/statistics" element={<ProtectedRoute><Statistics /></ProtectedRoute>} />
+            <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
+            <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
+            <Route path="/teams/:id" element={<ProtectedRoute><TeamDetails /></ProtectedRoute>} />
+            <Route path="/tournaments/:id/bracket" element={<ProtectedRoute><BracketView /></ProtectedRoute>} />
             
             {/* Boss Routes */}
             <Route path="/boss/dashboard" element={<ProtectedRoute allowedRoles={['boss']}><BossDashboard /></ProtectedRoute>} />

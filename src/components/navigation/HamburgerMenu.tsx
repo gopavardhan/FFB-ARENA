@@ -1,4 +1,4 @@
-import { X, Bell, History, MessageCircle, FileText, Shield, LogOut } from "lucide-react";
+import { X, Bell, History, MessageCircle, FileText, Shield, LogOut, BarChart3, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -10,6 +10,9 @@ interface HamburgerMenuProps {
 }
 
   const menuItems = [
+    { icon: BarChart3, label: "Statistics", path: "/statistics" },
+    { icon: Trophy, label: "Achievements", path: "/achievements" },
+    { icon: Users, label: "Teams", path: "/teams" },
     { icon: Bell, label: "Notifications", path: "/notifications" },
     { icon: History, label: "Match History", path: "/history" },
     { icon: MessageCircle, label: "Help & Support", path: "/support" },
