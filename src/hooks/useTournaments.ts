@@ -107,3 +107,65 @@ export const useUserRegistrations = (userId: string) => {
     },
   });
 };
+
+export const useAdminTournaments = (adminId: string) => {
+  return useQuery({
+    queryKey: ["admin_tournaments", adminId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select("*")
+        .eq("created_by", adminId)
+        .order("start_date", { ascending: false });
+
+      if (error) throw error;
+      return data as Tournament[];
+    },
+  });
+};
+
+export const useDeleteTournament = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      tournamentId,
+      userId
+    }: {
+      tournamentId: string;
+      userId: string;
+    }) => {
+      const { data, error } = await supabase.rpc("delete_tournament_with_refund", {
+        p_tournament_id: tournamentId,
+        p_deleted_by: userId,
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string; message?: string; refunds_issued?: number };
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete tournament");
+      }
+
+      return result;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["tournaments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin_tournaments"] });
+      queryClient.invalidateQueries({ queryKey: ["user_balance"] });
+      queryClient.invalidateQueries({ queryKey: ["tournament_registrations"] });
+      toast({
+        title: "Tournament Deleted",
+        description: `${data.message}. ${data.refunds_issued} refund(s) issued.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};

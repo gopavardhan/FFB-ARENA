@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { Users, DollarSign, TrendingUp, Activity as ActivityIcon, UserCog, Wallet, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Activity as ActivityIcon, UserCog, Wallet, ArrowDownToLine, ArrowUpFromLine, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBossActivities } from "@/hooks/useActivities";
 import { useBossCounts } from "@/hooks/useBossCounts";
@@ -19,6 +19,12 @@ const BossDashboard = () => {
       label: "Manage Admins",
       icon: UserCog,
       onClick: () => navigate("/boss/admins"),
+      variant: "outline" as const,
+    },
+    {
+      label: "All Tournaments",
+      icon: Trophy,
+      onClick: () => navigate("/boss/tournaments"),
       variant: "outline" as const,
     },
     {

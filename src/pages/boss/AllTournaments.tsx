@@ -4,13 +4,14 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useAdminTournaments, useDeleteTournament } from "@/hooks/useTournaments";
+import { useTournaments, useDeleteTournament } from "@/hooks/useTournaments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Users, Calendar, Plus, Edit, Key, Trash2 } from "lucide-react";
+import { Trophy, Users, Calendar, Trash2, UserCog } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
-import { RoomCredentials } from "./RoomCredentials";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,14 +23,30 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const TournamentManagement = () => {
+const AllTournaments = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: tournaments, isLoading } = useAdminTournaments(user?.id || "");
+  const { data: tournaments, isLoading } = useTournaments();
   const deleteTournament = useDeleteTournament();
-  const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tournamentToDelete, setTournamentToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  const { data: adminsMap } = useQuery({
+    queryKey: ["admins_map"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email");
+
+      if (error) throw error;
+
+      const map = new Map();
+      data?.forEach((profile) => {
+        map.set(profile.id, profile);
+      });
+      return map;
+    },
+  });
 
   const handleDeleteClick = (tournament: { id: string; name: string }) => {
     setTournamentToDelete(tournament);
@@ -63,20 +80,18 @@ const TournamentManagement = () => {
     }
   };
 
-  return (
-    <MainLayout>
-      <PageHeader 
-        title="Tournament Management"
-        showBack={true}
-        subtitle="Create and manage tournaments"
-      />
+  const getCreatorInfo = (createdBy: string) => {
+    const creator = adminsMap?.get(createdBy);
+    return creator ? creator.full_name || creator.email : "Unknown";
+  };
 
-      <div className="mb-6">
-        <Button variant="premium" onClick={() => navigate("/admin/tournaments/create")}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Tournament
-        </Button>
-      </div>
+  return (
+    <MainLayout showBottomNav={false}>
+      <PageHeader
+        title="All Tournaments"
+        showBack={true}
+        subtitle="View and manage all platform tournaments"
+      />
 
       {isLoading ? (
         <div className="flex justify-center py-12">
@@ -102,6 +117,13 @@ const TournamentManagement = () => {
 
               <div className="space-y-3 mb-4">
                 <div className="flex items-center gap-2 text-sm">
+                  <UserCog className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Created by:</span>
+                  <span className="font-semibold text-secondary">
+                    {getCreatorInfo(tournament.created_by)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
                   <Users className="w-4 h-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Slots:</span>
                   <span className="font-semibold">
@@ -125,18 +147,10 @@ const TournamentManagement = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setSelectedTournamentId(tournament.id)}
+                  onClick={() => navigate(`/tournaments/${tournament.id}`)}
+                  className="flex-1"
                 >
-                  <Key className="w-4 h-4 mr-1" />
-                  Room Details
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/admin/tournaments/${tournament.id}/results`)}
-                >
-                  <Edit className="w-4 h-4 mr-1" />
-                  Results
+                  View Details
                 </Button>
                 {tournament.status !== "completed" && (
                   <Button
@@ -157,21 +171,8 @@ const TournamentManagement = () => {
         <Card className="p-12 text-center">
           <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p className="text-muted-foreground">No tournaments yet</p>
-          <Button 
-            variant="premium" 
-            className="mt-4"
-            onClick={() => navigate("/admin/tournaments/create")}
-          >
-            Create Your First Tournament
-          </Button>
         </Card>
       )}
-
-      <RoomCredentials
-        tournamentId={selectedTournamentId || ""}
-        open={!!selectedTournamentId}
-        onOpenChange={(open) => !open && setSelectedTournamentId(null)}
-      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -200,4 +201,4 @@ const TournamentManagement = () => {
   );
 };
 
-export default TournamentManagement;
+export default AllTournaments;
