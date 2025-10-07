@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -10,12 +10,13 @@ import { Label } from "@/components/ui/label";
 import { useTournament, useRegisterTournament, useUserRegistrations } from "@/hooks/useTournaments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
-import { Trophy, Users, Calendar, DollarSign, Award, ArrowLeft, AlertCircle } from "lucide-react";
+import { Trophy, Users, Calendar, DollarSign, Award, ArrowLeft, AlertCircle, Eye } from "lucide-react";
 import { format, differenceInMinutes } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { SlotCard } from "@/components/tournaments/SlotCard";
 
 const TournamentDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,9 +33,67 @@ const TournamentDetails = () => {
   const [squadPartner1, setSquadPartner1] = useState("");
   const [squadPartner2, setSquadPartner2] = useState("");
   const [squadPartner3, setSquadPartner3] = useState("");
+  const [showPlayers, setShowPlayers] = useState(false);
+  const [registeredPlayers, setRegisteredPlayers] = useState<any[]>([]);
+  const [playersLoading, setPlayersLoading] = useState(false);
 
   const isRegistered = userRegistrations?.some((reg) => reg.tournament_id === id);
   const myRegistration = userRegistrations?.find((reg) => reg.tournament_id === id);
+
+  // Fetch registered players
+  const fetchRegisteredPlayers = async () => {
+    if (!id) return;
+    setPlayersLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('tournament_registrations')
+        .select('*')
+        .eq('tournament_id', id)
+        .order('slot_number', { ascending: true });
+
+      if (error) throw error;
+      setRegisteredPlayers(data || []);
+    } catch (error) {
+      console.error('Error fetching players:', error);
+    } finally {
+      setPlayersLoading(false);
+    }
+  };
+
+  // Real-time subscription for player updates
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel(`tournament_registrations_player:${id}`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'tournament_registrations', 
+        filter: `tournament_id=eq.${id}` 
+      }, (payload) => {
+        fetchRegisteredPlayers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
+  // Fetch players when showPlayers is toggled or component loads
+  useEffect(() => {
+    if (showPlayers) {
+      fetchRegisteredPlayers();
+    }
+  }, [showPlayers, id]);
+
+  // Also fetch players immediately when component loads (for debugging)
+  useEffect(() => {
+    if (id) {
+      fetchRegisteredPlayers();
+    }
+  }, [id]);
 
   // Fetch room credentials for registered users
   const { data: credentials } = useQuery({
@@ -233,7 +292,7 @@ const TournamentDetails = () => {
               </div>
             )}
 
-            {showRoomDetails ? (
+            {showRoomDetails && (
               <div className="mt-6 p-4 bg-secondary/10 border border-secondary/20 rounded-lg">
                 <h4 className="font-semibold mb-2 flex items-center gap-2">
                   <Trophy className="w-4 h-4" />
@@ -248,17 +307,39 @@ const TournamentDetails = () => {
                   )}
                 </div>
               </div>
-            ) : showRoomPending && (
+            )}
+
+            {showRoomPending && (
               <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-blue-500 mb-1">Room Details Coming Soon</h4>
+                    <h4 className="font-semibold text-blue-500 mb-1">Room Credentials</h4>
                     <p className="text-sm text-muted-foreground">
-                      Room ID and password will be available here 5 minutes before the match starts.
+                      <strong>Room credentials will be displayed here 5 minutes before the match starts.</strong>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      ⏰ Time remaining: {Math.max(0, minutesUntilStart - 5)} minutes
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      💡 Make sure to check back here before the tournament begins!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isRegistered && !credentials && minutesUntilStart <= 5 && (
+              <div className="mt-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-orange-500 mb-1">Waiting for Room Credentials</h4>
+                    <p className="text-sm text-muted-foreground">
+                      The admin hasn't posted the room credentials yet. They will appear here once available.
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Time until available: {Math.max(0, minutesUntilStart - 5)} minutes
+                      Please wait for the admin to update the room details.
                     </p>
                   </div>
                 </div>
@@ -274,6 +355,54 @@ const TournamentDetails = () => {
               </div>
             </Card>
           )}
+
+          {/* Registered Players Section */}
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-orbitron font-bold flex items-center gap-2">
+                <Users className="w-5 h-5 text-secondary" />
+                Registered Players
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {tournament.filled_slots}/{tournament.total_slots} slots filled
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPlayers(!showPlayers)}
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  {showPlayers ? 'Hide' : 'View'} Players
+                </Button>
+              </div>
+            </div>
+
+            {showPlayers && (
+              <div className="mt-4">
+                {playersLoading ? (
+                  <div className="flex justify-center py-8">
+                    <LoadingSpinner />
+                  </div>
+                ) : registeredPlayers.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {registeredPlayers.map(player => (
+                      <SlotCard 
+                        key={player.id} 
+                        slot={player} 
+                        isPlayerSlot={player.user_id === user?.id} 
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No players have joined this tournament yet.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
         </div>
 
         {/* Sidebar */}

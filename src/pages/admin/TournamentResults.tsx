@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTournament } from "@/hooks/useTournaments";
 import { useQuery } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
-import { Trophy, ArrowLeft } from "lucide-react";
+import { Trophy, ArrowLeft, Users, Crown, DollarSign } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Registration {
@@ -31,6 +31,29 @@ const TournamentResults = () => {
   const { data: tournament, isLoading } = useTournament(id!);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [winnerId, setWinnerId] = useState<string>("");
+  const [selectedWinner, setSelectedWinner] = useState<Registration | null>(null);
+
+  // Parse team members helper
+  const parseTeamMembers = (friendInGameName: string | null) => {
+    if (!friendInGameName) return [];
+    
+    try {
+      const parsed = JSON.parse(friendInGameName);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(Boolean);
+      }
+      return [parsed];
+    } catch (e) {
+      return [friendInGameName];
+    }
+  };
+
+  // Handle winner selection
+  const handleWinnerSelect = (userId: string) => {
+    setWinnerId(userId);
+    const winner = registrations?.find(reg => reg.user_id === userId);
+    setSelectedWinner(winner || null);
+  };
 
   const { data: registrations, isLoading: loadingRegistrations } = useQuery({
     queryKey: ["tournament_registrations_full", id],
@@ -319,41 +342,37 @@ const TournamentResults = () => {
                   </Label>
                   <Select
                     value={winnerId}
-                    onValueChange={setWinnerId}
+                    onValueChange={handleWinnerSelect}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select winner from participants" />
                     </SelectTrigger>
                     <SelectContent>
                       {registrations?.map((reg) => {
-                        // friend_in_game_name may be a JSON array string for squads or plain string for duo
-                        let partnersDisplay: string | null = null;
-                        if (reg.friend_in_game_name) {
-                          try {
-                            const parsed = JSON.parse(reg.friend_in_game_name);
-                            if (Array.isArray(parsed)) {
-                              partnersDisplay = parsed.join(", ");
-                            } else {
-                              partnersDisplay = String(parsed);
-                            }
-                          } catch {
-                            partnersDisplay = String(reg.friend_in_game_name);
-                          }
-                        }
+                        const teamMembers = parseTeamMembers(reg.friend_in_game_name);
+                        const teamSize = teamMembers.length + 1; // +1 for the main player
 
                         return (
                           <SelectItem key={reg.user_id} value={reg.user_id}>
-                            <div className="flex flex-col py-2">
-                              <span className="font-semibold text-base">
-                                {reg.in_game_name || reg.profiles.full_name}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                Slot #{reg.slot_number} • {reg.profiles.email}
-                              </span>
-                              {partnersDisplay && (
-                                <span className="text-xs text-muted-foreground">
-                                  Partner(s): {partnersDisplay}
+                            <div className="flex flex-col py-2 w-full">
+                              <div className="flex items-center gap-2">
+                                <Crown className="w-4 h-4 text-yellow-500" />
+                                <span className="font-semibold text-base">
+                                  {reg.in_game_name}
                                 </span>
+                                <span className="text-xs bg-secondary/20 text-secondary px-2 py-1 rounded">
+                                  Slot #{reg.slot_number}
+                                </span>
+                              </div>
+                              <span className="text-xs text-muted-foreground mt-1">
+                                {reg.profiles.full_name} • {reg.profiles.email}
+                              </span>
+                              {teamMembers.length > 0 && (
+                                <div className="mt-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    Team ({teamSize} players): {teamMembers.join(", ")}
+                                  </span>
+                                </div>
                               )}
                             </div>
                           </SelectItem>
@@ -362,6 +381,75 @@ const TournamentResults = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Winner Preview Card */}
+                {selectedWinner && (
+                  <Card className="border-2 border-yellow-500/30 bg-gradient-to-r from-yellow-500/5 to-orange-500/5">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-yellow-600">
+                        <Crown className="w-5 h-5" />
+                        Selected Winner Preview
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {/* Main Player Info */}
+                        <div className="flex items-center justify-between p-4 bg-card/60 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                              <Crown className="w-6 h-6 text-yellow-500" />
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-lg">{selectedWinner.in_game_name}</h4>
+                              <p className="text-sm text-muted-foreground">{selectedWinner.profiles.full_name}</p>
+                              <p className="text-xs text-muted-foreground">{selectedWinner.profiles.email}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-muted-foreground">Slot</div>
+                            <div className="text-xl font-bold text-secondary">#{selectedWinner.slot_number}</div>
+                          </div>
+                        </div>
+
+                        {/* Team Members */}
+                        {parseTeamMembers(selectedWinner.friend_in_game_name).length > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-muted-foreground" />
+                              <span className="font-semibold">Team Members</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {parseTeamMembers(selectedWinner.friend_in_game_name).map((member, index) => (
+                                <div key={index} className="p-3 bg-card/40 rounded-lg border">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 bg-secondary/20 rounded-full flex items-center justify-center">
+                                      <Users className="w-4 h-4 text-secondary" />
+                                    </div>
+                                    <span className="font-medium">{member}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Prize Info */}
+                        <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="w-5 h-5 text-green-500" />
+                              <span className="font-semibold">Prize Amount</span>
+                            </div>
+                            <div className="text-2xl font-bold text-green-500">₹{winnerPrize}</div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Will be automatically credited to winner's account
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <Button
                   onClick={handleSubmit}

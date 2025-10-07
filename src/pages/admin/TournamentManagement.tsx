@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAdminTournaments, useDeleteTournament } from "@/hooks/useTournaments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Users, Calendar, Plus, CreditCard as Edit, Key, Trash2 } from "lucide-react";
+import { Trophy, Users, Calendar, Plus, CreditCard as Edit, Key, Trash2, UserCheck } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/core/LoadingSpinner";
 import { RoomCredentials } from "./RoomCredentials";
@@ -24,9 +24,10 @@ import {
 
 const TournamentManagement = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const { data: tournaments, isLoading } = useAdminTournaments(user?.id || "");
-  const deleteTournament = useDeleteTournament();
+  
+    const deleteTournament = useDeleteTournament();
   const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tournamentToDelete, setTournamentToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -122,6 +123,14 @@ const TournamentManagement = () => {
               </div>
 
               <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => navigate(`/admin/tournaments/${tournament.id}/slots`)}
+                >
+                  <UserCheck className="w-4 h-4 mr-1" />
+                  View Slots
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

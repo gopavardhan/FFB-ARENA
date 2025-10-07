@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useRealtimeTournaments } from "@/hooks/useRealtimeTournaments";
 
 const Tournaments = () => {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "upcoming" | "active" | "completed">("all");
@@ -27,6 +27,10 @@ const Tournaments = () => {
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
   const { data: userRegistrations } = useUserRegistrations(user?.id || "");
+
+  const handleTournamentClick = (tournamentId: string) => {
+    navigate(`/tournaments/${tournamentId}`);
+  };
 
   const filteredTournaments = tournaments?.filter((tournament) =>
     tournament.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -91,10 +95,10 @@ const Tournaments = () => {
       ) : filteredTournaments && filteredTournaments.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTournaments.map((tournament) => (
-            <Card 
+            <div 
               key={tournament.id} 
-              className="p-6 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(`/tournaments/${tournament.id}`)}
+              className="p-6 bg-gradient-to-br from-card to-card/50 hover:shadow-lg transition-shadow cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm"
+              onClick={() => handleTournamentClick(tournament.id)}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -137,26 +141,41 @@ const Tournaments = () => {
               </div>
 
               {isRegistered(tournament.id) ? (
-                <Button variant="outline" className="w-full" disabled onClick={(e) => e.stopPropagation()}>
+                <Button variant="outline" className="w-full" disabled>
                   Already Registered
                 </Button>
               ) : tournament.filled_slots >= tournament.total_slots ? (
-                <Button variant="outline" className="w-full" disabled onClick={(e) => e.stopPropagation()}>
+                <Button variant="outline" className="w-full" disabled>
                   Tournament Full
                 </Button>
               ) : (
-                <Button 
-                  variant="premium" 
-                  className="w-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/tournaments/${tournament.id}`);
-                  }}
-                >
-                  View Details
-                </Button>
+                <>
+                  {(userRole === 'admin' || userRole === 'boss') ? (
+                    <Button 
+                      variant="secondary" 
+                      className="w-full mb-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/admin/tournaments/${tournament.id}/slots`);
+                      }}
+                    >
+                      View Slots
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="premium" 
+                      className="w-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/tournaments/${tournament.id}`);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  )}
+                </>
               )}
-            </Card>
+            </div>
           ))}
         </div>
       ) : (
