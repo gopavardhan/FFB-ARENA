@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, CircleAlert as AlertCircle } from "lucide-react";
+import { Eye, EyeOff, CircleAlert as AlertCircle, Mail, Lock, User, Phone, Sparkles, LogIn, UserPlus, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import ffbArenaLogo from "@/assets/ffb-arena-logo.jpg";
@@ -336,22 +336,73 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 bg-card border-border">
-        <div className="text-center mb-8">
-          <img
-            src={ffbArenaLogo}
-            alt="FFB ARENA"
-            className="w-20 h-20 rounded-xl object-cover mx-auto mb-4 shadow-lg"
-          />
-          <h1 className="text-3xl font-orbitron font-bold text-gradient mb-2">FFB ARENA</h1>
-          <p className="text-muted-foreground font-inter">Your Premier Tournament Platform</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Enhanced Animated Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Animated Gradient Orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full blur-3xl animate-pulse opacity-30"></div>
+        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-r from-secondary/20 to-accent/20 rounded-full blur-3xl animate-pulse delay-1000 opacity-25"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-gradient-to-r from-accent/20 to-primary/20 rounded-full blur-3xl animate-pulse delay-2000 opacity-20"></div>
+        
+        {/* Floating Particles */}
+        <div className="absolute top-1/3 left-1/2 w-2 h-2 bg-primary/40 rounded-full animate-bounce delay-300"></div>
+        <div className="absolute top-2/3 left-1/4 w-1 h-1 bg-secondary/40 rounded-full animate-bounce delay-700"></div>
+        <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-accent/40 rounded-full animate-bounce delay-1100"></div>
+        
+        {/* Animated Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)] animate-pulse"></div>
+        
+        {/* Moving Gradient Lines */}
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-secondary/30 to-transparent animate-pulse delay-1000"></div>
+        <div className="absolute top-0 left-0 w-px h-full bg-gradient-to-b from-transparent via-accent/30 to-transparent animate-pulse delay-500"></div>
+        <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-transparent via-primary/30 to-transparent animate-pulse delay-1500"></div>
+      </div>
+
+      {/* Main Card with Enhanced Animations */}
+      <Card className="w-full max-w-md p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-2xl relative z-10 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
+        {/* Glowing Border Effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 rounded-lg blur-sm -z-10 animate-pulse"></div>
+        
+        <div className="text-center mb-8 space-y-4">
+          {/* Animated Logo */}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-xl blur-md opacity-75 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
+            <img
+              src={ffbArenaLogo}
+              alt="FFB ARENA"
+              className="w-20 h-20 rounded-xl object-cover mx-auto relative z-10 shadow-2xl transform transition-transform duration-300 hover:scale-110 hover:rotate-3"
+            />
+          </div>
+          
+          {/* Animated Title */}
+          <div className="space-y-2">
+            <h1 className="text-4xl font-orbitron font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-in slide-in-from-top-2 duration-1000">
+              FFB ARENA
+            </h1>
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-px bg-gradient-to-r from-transparent via-primary to-transparent flex-1 animate-in slide-in-from-left-4 duration-1000 delay-300"></div>
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <div className="h-px bg-gradient-to-r from-transparent via-primary to-transparent flex-1 animate-in slide-in-from-right-4 duration-1000 delay-300"></div>
+            </div>
+            <p className="text-muted-foreground font-inter animate-in fade-in-0 duration-1000 delay-500 flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+              Your Premier Tournament Platform
+              <Sparkles className="w-4 h-4 text-secondary animate-pulse delay-500" />
+            </p>
+          </div>
         </div>
 
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+        <Tabs defaultValue="login" className="w-full animate-in fade-in-0 duration-1000 delay-700">
+          <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50 backdrop-blur-sm">
+            <TabsTrigger value="login" className="transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg flex items-center gap-2">
+              <LogIn className="w-4 h-4" />
+              Login
+            </TabsTrigger>
+            <TabsTrigger value="signup" className="transition-all duration-300 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg flex items-center gap-2">
+              <UserPlus className="w-4 h-4" />
+              Sign Up
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="login">
@@ -406,24 +457,33 @@ const Auth = () => {
               </div>
             ) : (
               <>
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                <form onSubmit={handleLogin} className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
+                  <div className="space-y-2 animate-in fade-in-0 slide-in-from-left-2 duration-500 delay-100">
+                    <Label htmlFor="login-email" className="text-sm font-medium flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-primary" />
+                      Email
+                    </Label>
                     <Input
                       id="login-email"
                       type="email"
                       placeholder="your@email.com"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
-                      className={loginErrors.email ? "border-destructive" : ""}
+                      className={`transition-all duration-300 focus:scale-[1.02] hover:shadow-md ${loginErrors.email ? "border-destructive animate-pulse" : "focus:border-primary"}`}
                     />
                     {loginErrors.email && (
-                      <p className="text-sm text-destructive">{loginErrors.email}</p>
+                      <p className="text-sm text-destructive animate-in slide-in-from-left-2 duration-300 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {loginErrors.email}
+                      </p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
+                  <div className="space-y-2 animate-in fade-in-0 slide-in-from-left-2 duration-500 delay-200">
+                    <Label htmlFor="login-password" className="text-sm font-medium flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-primary" />
+                      Password
+                    </Label>
                     <div className="relative">
                       <Input
                         id="login-password"
@@ -431,35 +491,54 @@ const Auth = () => {
                         placeholder="••••••••"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
-                        className={loginErrors.password ? "border-destructive pr-10" : "pr-10"}
+                        className={`transition-all duration-300 focus:scale-[1.02] hover:shadow-md pr-10 ${loginErrors.password ? "border-destructive animate-pulse" : "focus:border-primary"}`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                     {loginErrors.password && (
-                      <p className="text-sm text-destructive">{loginErrors.password}</p>
+                      <p className="text-sm text-destructive animate-in slide-in-from-left-2 duration-300 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {loginErrors.password}
+                      </p>
                     )}
                   </div>
 
                   <Button
                     type="button"
                     variant="link"
-                    className="px-0 text-sm text-secondary hover:text-secondary/80"
+                    className="px-0 text-sm text-secondary hover:text-secondary/80 transition-all duration-200 hover:translate-x-1 animate-in fade-in-0 duration-500 delay-300 flex items-center gap-1"
                     onClick={() => {
                       setShowForgotPassword(true);
                       setResetEmail(loginEmail);
                     }}
                   >
+                    <RotateCcw className="w-3 h-3" />
                     Forgot Password?
                   </Button>
 
-                  <Button type="submit" variant="premium" className="w-full" disabled={loading}>
-                    {loading ? "Logging in..." : "Login"}
+                  <Button 
+                    type="submit" 
+                    variant="premium" 
+                    className="w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed animate-in fade-in-0 slide-in-from-bottom-2 duration-500 delay-400" 
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                        Logging in...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <LogIn className="w-4 h-4" />
+                        Login
+                      </div>
+                    )}
                   </Button>
                 </form>
               </>
@@ -467,55 +546,76 @@ const Auth = () => {
           </TabsContent>
 
           <TabsContent value="signup">
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full-name">Full Name *</Label>
+            <form onSubmit={handleSignup} className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
+              <div className="space-y-2 animate-in fade-in-0 slide-in-from-left-2 duration-500 delay-100">
+                <Label htmlFor="full-name" className="text-sm font-medium flex items-center gap-2">
+                  <User className="w-4 h-4 text-primary" />
+                  Full Name *
+                </Label>
                 <Input
                   id="full-name"
                   type="text"
                   placeholder="John Doe"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className={signupErrors.fullName ? "border-destructive" : ""}
+                  className={`transition-all duration-300 focus:scale-[1.02] hover:shadow-md ${signupErrors.fullName ? "border-destructive animate-pulse" : "focus:border-primary"}`}
                 />
                 {signupErrors.fullName && (
-                  <p className="text-sm text-destructive">{signupErrors.fullName}</p>
+                  <p className="text-sm text-destructive animate-in slide-in-from-left-2 duration-300 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {signupErrors.fullName}
+                  </p>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email *</Label>
+              <div className="space-y-2 animate-in fade-in-0 slide-in-from-left-2 duration-500 delay-200">
+                <Label htmlFor="signup-email" className="text-sm font-medium flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-primary" />
+                  Email *
+                </Label>
                 <Input
                   id="signup-email"
                   type="email"
                   placeholder="your@email.com"
                   value={signupEmail}
                   onChange={(e) => setSignupEmail(e.target.value)}
-                  className={signupErrors.email ? "border-destructive" : ""}
+                  className={`transition-all duration-300 focus:scale-[1.02] hover:shadow-md ${signupErrors.email ? "border-destructive animate-pulse" : "focus:border-primary"}`}
                 />
                 {signupErrors.email && (
-                  <p className="text-sm text-destructive">{signupErrors.email}</p>
+                  <p className="text-sm text-destructive animate-in slide-in-from-left-2 duration-300 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {signupErrors.email}
+                  </p>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number (Optional)</Label>
+              <div className="space-y-2 animate-in fade-in-0 slide-in-from-left-2 duration-500 delay-300">
+                <Label htmlFor="phone" className="text-sm font-medium flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-primary" />
+                  Phone Number (Optional)
+                </Label>
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="9876543210"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className={signupErrors.phoneNumber ? "border-destructive" : ""}
+                  className={`transition-all duration-300 focus:scale-[1.02] hover:shadow-md ${signupErrors.phoneNumber ? "border-destructive animate-pulse" : "focus:border-primary"}`}
                   maxLength={10}
                 />
                 {signupErrors.phoneNumber && (
-                  <p className="text-sm text-destructive">{signupErrors.phoneNumber}</p>
+                  <p className="text-sm text-destructive animate-in slide-in-from-left-2 duration-300 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {signupErrors.phoneNumber}
+                  </p>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password *</Label>
+              <div className="space-y-2 animate-in fade-in-0 slide-in-from-left-2 duration-500 delay-400">
+                <Label htmlFor="signup-password" className="text-sm font-medium flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-primary" />
+                  Password *
+                </Label>
                 <div className="relative">
                   <Input
                     id="signup-password"
@@ -523,58 +623,83 @@ const Auth = () => {
                     placeholder="••••••••"
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
-                    className={signupErrors.password ? "border-destructive pr-10" : "pr-10"}
+                    className={`transition-all duration-300 focus:scale-[1.02] hover:shadow-md pr-10 ${signupErrors.password ? "border-destructive animate-pulse" : "focus:border-primary"}`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {signupPassword && (
-                  <div className="space-y-1">
+                  <div className="space-y-1 animate-in fade-in-0 duration-300">
                     <div className="flex gap-1">
                       {[0, 1, 2, 3, 4].map((i) => (
                         <div
                           key={i}
-                          className={`h-1 flex-1 rounded-full transition-all ${
+                          className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
                             i < passwordStrength ? strengthColors[passwordStrength - 1] : "bg-muted"
                           }`}
                         />
                       ))}
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 animate-pulse" />
                       {passwordStrength > 0 ? strengthLabels[passwordStrength - 1] : "Enter a password"}
                     </p>
                   </div>
                 )}
                 {signupErrors.password && (
-                  <p className="text-sm text-destructive">{signupErrors.password}</p>
+                  <p className="text-sm text-destructive animate-in slide-in-from-left-2 duration-300 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {signupErrors.password}
+                  </p>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password *</Label>
+              <div className="space-y-2 animate-in fade-in-0 slide-in-from-left-2 duration-500 delay-500">
+                <Label htmlFor="confirm-password" className="text-sm font-medium flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-primary" />
+                  Confirm Password *
+                </Label>
                 <Input
                   id="confirm-password"
                   type="password"
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={signupErrors.confirmPassword ? "border-destructive" : ""}
+                  className={`transition-all duration-300 focus:scale-[1.02] hover:shadow-md ${signupErrors.confirmPassword ? "border-destructive animate-pulse" : "focus:border-primary"}`}
                 />
                 {signupErrors.confirmPassword && (
-                  <p className="text-sm text-destructive">{signupErrors.confirmPassword}</p>
+                  <p className="text-sm text-destructive animate-in slide-in-from-left-2 duration-300 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {signupErrors.confirmPassword}
+                  </p>
                 )}
               </div>
 
-              <Button type="submit" variant="premium" className="w-full" disabled={loading}>
-                {loading ? "Creating Account..." : "Create Account"}
+              <Button 
+                type="submit" 
+                variant="premium" 
+                className="w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed animate-in fade-in-0 slide-in-from-bottom-2 duration-500 delay-600" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                    Creating Account...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="w-4 h-4" />
+                    Create Account
+                  </div>
+                )}
               </Button>
 
-              <p className="text-xs text-center text-muted-foreground">
+              <p className="text-xs text-center text-muted-foreground animate-in fade-in-0 duration-500 delay-700">
                 By signing up, you agree to our Terms & Conditions
               </p>
             </form>
