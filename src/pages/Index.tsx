@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { TournamentNotifications } from "@/components/tournaments/TournamentNotifications";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -67,6 +68,12 @@ const Index = () => {
         subtitle="Your premier Free Fire tournament platform"
       />
 
+      {/* Tournament Notifications */}
+      <TournamentNotifications 
+        tournaments={tournaments || []} 
+        userRegistrations={userRegistrations || []} 
+      />
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <StatCard
@@ -103,7 +110,8 @@ const Index = () => {
                 Your path to becoming a champion starts here!
               </p>
               <div className="flex gap-4 justify-center flex-wrap">
-                <Button variant="premium" size="lg" onClick={() => navigate("/tournaments")}>
+                <Button variant="premium" size="lg" onClick={() => navigate("/tournaments")} className="animate-pulse">
+                  <Trophy className="w-5 h-5 mr-2" />
                   Browse Tournaments
                 </Button>
                 <Button variant="outline" size="lg" onClick={() => navigate("/wallet")}>
@@ -112,6 +120,44 @@ const Index = () => {
               </div>
             </div>
           </Card>
+
+          {/* Quick Tournament Preview */}
+          {tournaments && tournaments.length > 0 && (
+            <Card className="p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-orbitron font-bold flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-secondary" />
+                  Upcoming Tournaments
+                </h3>
+                <Button variant="ghost" onClick={() => navigate("/tournaments")}>
+                  View All
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {tournaments.slice(0, 2).map((tournament: any) => (
+                  <Card 
+                    key={tournament.id}
+                    className="p-4 cursor-pointer hover:bg-secondary/5 transition-colors border-secondary/20"
+                    onClick={() => navigate(`/tournaments/${tournament.id}`)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold truncate">{tournament.name}</h4>
+                      <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                        {tournament.status}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                      <div>Entry: ₹{tournament.entry_fee}</div>
+                      <div>Slots: {tournament.filled_slots}/{tournament.total_slots}</div>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {format(new Date(tournament.start_date), "PPp")}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </Card>
+          )}
 
           <Tabs defaultValue="activity" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
